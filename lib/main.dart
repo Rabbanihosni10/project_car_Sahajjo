@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'screens/splash_screen.dart';
 import 'screens/sign_in_screen.dart';
 import 'screens/home_screen.dart';
 
@@ -17,7 +18,7 @@ class MyApp extends StatelessWidget {
         colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFF2196F3)),
         useMaterial3: true,
       ),
-      home: const SignInScreen(),
+      home: const SplashScreen(),
       routes: {
         '/signin': (context) => const SignInScreen(),
         '/home': (context) => const HomeScreen(),
