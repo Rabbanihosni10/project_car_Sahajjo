@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
-import 'sign_in_screen.dart';
+import 'onboarding_screen.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -9,7 +9,8 @@ class SplashScreen extends StatefulWidget {
   State<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderStateMixin {
+class _SplashScreenState extends State<SplashScreen>
+    with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _fadeAnimation;
   late Animation<double> _scaleAnimation;
@@ -17,7 +18,7 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
   @override
   void initState() {
     super.initState();
-    
+
     // Initialize animations
     _animationController = AnimationController(
       duration: const Duration(milliseconds: 1500),
@@ -25,25 +26,19 @@ class _SplashScreenState extends State<SplashScreen> with SingleTickerProviderSt
     );
 
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _animationController,
-        curve: Curves.easeIn,
-      ),
+      CurvedAnimation(parent: _animationController, curve: Curves.easeIn),
     );
 
     _scaleAnimation = Tween<double>(begin: 0.5, end: 1.0).animate(
-      CurvedAnimation(
-        parent: _animationController,
-        curve: Curves.easeOutBack,
-      ),
+      CurvedAnimation(parent: _animationController, curve: Curves.easeOutBack),
     );
 
     _animationController.forward();
 
-    // Navigate to sign in screen after delay
+    // Navigate to onboarding screen after delay
     Timer(const Duration(seconds: 3), () {
       Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (context) => const SignInScreen()),
+        MaterialPageRoute(builder: (context) => const OnboardingScreen()),
       );
     });
   }
