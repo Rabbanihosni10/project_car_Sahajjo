@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
-import '../models/user.dart';
 import 'terms_and_conditions_driver_screen.dart';
 
 class SignUpDriverScreen extends StatefulWidget {

@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
-import '../models/user.dart';
 import 'terms_and_conditions_screen.dart';
 
 class SignUpVisitorScreen extends StatefulWidget {

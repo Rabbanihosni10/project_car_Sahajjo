@@ -1,14 +1,13 @@
 import 'package:flutter/material.dart';
-import '../screens/sign_up_screen.dart';
 
-class SignInScreen extends StatefulWidget {
-  const SignInScreen({super.key});
+class AdminLoginScreen extends StatefulWidget {
+  const AdminLoginScreen({super.key});
 
   @override
-  State<SignInScreen> createState() => _SignInScreenState();
+  State<AdminLoginScreen> createState() => _AdminLoginScreenState();
 }
 
-class _SignInScreenState extends State<SignInScreen> {
+class _AdminLoginScreenState extends State<AdminLoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _isPasswordVisible = false;
@@ -21,7 +20,7 @@ class _SignInScreenState extends State<SignInScreen> {
     super.dispose();
   }
 
-  void _handleSignIn() async {
+  void _handleAdminLogin() async {
     if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please fill in all fields')),
@@ -31,14 +30,14 @@ class _SignInScreenState extends State<SignInScreen> {
 
     setState(() => _isLoading = true);
 
-    // Simulate API call
+    // Simulate API call and admin verification
     await Future.delayed(const Duration(seconds: 2));
 
     if (!mounted) return;
     setState(() => _isLoading = false);
 
-    // Navigate to home screen
-    Navigator.of(context).pushReplacementNamed('/home');
+    // Navigate to admin dashboard
+    Navigator.of(context).pushReplacementNamed('/admin/dashboard');
   }
 
   @override
@@ -46,13 +45,13 @@ class _SignInScreenState extends State<SignInScreen> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: const Color(0xFF2196F3),
+        backgroundColor: const Color(0xFFD32F2F),
         elevation: 0,
         centerTitle: true,
         title: const Text(
-          'Car Sahajjo',
+          'Admin Panel - Car Sahajjo',
           style: TextStyle(
-            fontSize: 24,
+            fontSize: 20,
             fontWeight: FontWeight.bold,
             color: Colors.white,
           ),
@@ -65,23 +64,23 @@ class _SignInScreenState extends State<SignInScreen> {
             crossAxisAlignment: CrossAxisAlignment.center,
             children: [
               const SizedBox(height: 40),
-              // Logo/Header
+              // Admin Logo/Header
               Container(
                 width: 80,
                 height: 80,
                 decoration: BoxDecoration(
-                  color: const Color(0xFF2196F3),
+                  color: const Color(0xFFD32F2F),
                   borderRadius: BorderRadius.circular(20),
                 ),
                 child: const Icon(
-                  Icons.directions_car,
+                  Icons.admin_panel_settings,
                   size: 50,
                   color: Colors.white,
                 ),
               ),
               const SizedBox(height: 20),
               const Text(
-                'Welcome Back',
+                'Admin Login',
                 style: TextStyle(
                   fontSize: 28,
                   fontWeight: FontWeight.bold,
@@ -90,7 +89,7 @@ class _SignInScreenState extends State<SignInScreen> {
               ),
               const SizedBox(height: 10),
               const Text(
-                'Sign in to your account',
+                'Access the administration panel',
                 style: TextStyle(fontSize: 16, color: Colors.grey),
               ),
               const SizedBox(height: 40),
@@ -99,7 +98,7 @@ class _SignInScreenState extends State<SignInScreen> {
               TextField(
                 controller: _emailController,
                 decoration: InputDecoration(
-                  hintText: 'Email Address',
+                  hintText: 'Admin Email Address',
                   prefixIcon: const Icon(Icons.email_outlined),
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
@@ -107,7 +106,7 @@ class _SignInScreenState extends State<SignInScreen> {
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
                     borderSide: const BorderSide(
-                      color: Color(0xFF2196F3),
+                      color: Color(0xFFD32F2F),
                       width: 2,
                     ),
                   ),
@@ -120,7 +119,7 @@ class _SignInScreenState extends State<SignInScreen> {
                 controller: _passwordController,
                 obscureText: !_isPasswordVisible,
                 decoration: InputDecoration(
-                  hintText: 'Password',
+                  hintText: 'Admin Password',
                   prefixIcon: const Icon(Icons.lock_outline),
                   suffixIcon: IconButton(
                     icon: Icon(
@@ -140,108 +139,68 @@ class _SignInScreenState extends State<SignInScreen> {
                   focusedBorder: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(10),
                     borderSide: const BorderSide(
-                      color: Color(0xFF2196F3),
+                      color: Color(0xFFD32F2F),
                       width: 2,
                     ),
                   ),
                 ),
               ),
-              const SizedBox(height: 12),
-
-              // Forgot Password
-              Align(
-                alignment: Alignment.centerRight,
-                child: TextButton(
-                  onPressed: () {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      const SnackBar(
-                        content: Text('Forgot password feature coming soon'),
-                      ),
-                    );
-                  },
-                  child: const Text(
-                    'Forgot Password?',
-                    style: TextStyle(color: Color(0xFF2196F3)),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 20),
 
               // Sign In Button
               SizedBox(
                 width: double.infinity,
-                height: 50,
                 child: ElevatedButton(
-                  onPressed: _isLoading ? null : _handleSignIn,
+                  onPressed: _isLoading ? null : _handleAdminLogin,
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF2196F3),
-                    disabledBackgroundColor: Colors.grey[300],
+                    backgroundColor: const Color(0xFFD32F2F),
+                    disabledBackgroundColor: Colors.grey,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(10),
                     ),
+                    padding: const EdgeInsets.symmetric(vertical: 14),
                   ),
                   child: _isLoading
                       ? const SizedBox(
                           height: 20,
                           width: 20,
                           child: CircularProgressIndicator(
-                            strokeWidth: 2,
                             valueColor: AlwaysStoppedAnimation<Color>(
                               Colors.white,
                             ),
+                            strokeWidth: 2,
                           ),
                         )
                       : const Text(
-                          'Sign In',
+                          'Login to Admin Panel',
                           style: TextStyle(
-                            fontSize: 18,
+                            fontSize: 16,
                             fontWeight: FontWeight.bold,
                             color: Colors.white,
                           ),
                         ),
                 ),
               ),
-              const SizedBox(height: 24),
+              const SizedBox(height: 16),
 
-              // Divider
-              Row(
-                children: [
-                  Expanded(
-                    child: Container(height: 1, color: Colors.grey[300]),
-                  ),
-                  const Padding(
-                    padding: EdgeInsets.symmetric(horizontal: 16),
-                    child: Text('or'),
-                  ),
-                  Expanded(
-                    child: Container(height: 1, color: Colors.grey[300]),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 24),
-
-              // Create Account Link
+              // Back to Regular Login
               Row(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   const Text(
-                    "Don't have an account? ",
-                    style: TextStyle(color: Colors.grey),
+                    'Not an admin? ',
+                    style: TextStyle(fontSize: 14, color: Colors.grey),
                   ),
-                  GestureDetector(
-                    onTap: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(
-                          builder: (context) => const SignUpScreen(),
-                        ),
-                      );
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pushReplacementNamed('/signin');
                     },
                     child: const Text(
-                      'Create one',
+                      'Back to Login',
                       style: TextStyle(
-                        color: Color(0xFF2196F3),
+                        fontSize: 14,
                         fontWeight: FontWeight.bold,
-                        fontSize: 16,
+                        color: Color(0xFFD32F2F),
                       ),
                     ),
                   ),

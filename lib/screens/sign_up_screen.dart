@@ -246,6 +246,9 @@ class _SignUpScreenState extends State<SignUpScreen> {
       case UserRole.carOwner:
         nextScreen = const SignUpCarOwnerScreen();
         break;
+      case UserRole.admin:
+        // Admin has their own login page, not sign up
+        return;
     }
 
     Navigator.of(
