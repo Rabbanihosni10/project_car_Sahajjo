@@ -1,4 +1,4 @@
-enum UserRole { visitor, driver, carOwner }
+enum UserRole { visitor, driver, carOwner, admin }
 
 class User {
   final String email;
@@ -76,5 +76,29 @@ class CarOwnerUser extends User {
          fullName: fullName,
          phone: phone,
          role: UserRole.carOwner,
+       );
+}
+
+class AdminUser extends User {
+  final String adminId;
+  final String permissions;
+  final DateTime createdAt;
+  final bool isActive;
+
+  AdminUser({
+    required String email,
+    required String password,
+    required String fullName,
+    required String phone,
+    required this.adminId,
+    required this.permissions,
+    required this.createdAt,
+    this.isActive = true,
+  }) : super(
+         email: email,
+         password: password,
+         fullName: fullName,
+         phone: phone,
+         role: UserRole.admin,
        );
 }
