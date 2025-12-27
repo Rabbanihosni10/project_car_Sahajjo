@@ -527,7 +527,7 @@ class _VisitorHomeScreenState extends State<VisitorHomeScreen> {
 
   Widget _buildCarsForSale() {
     return Container(
-      height: 160,
+      height: 190,
       margin: const EdgeInsets.only(top: 12),
       child: ListView.builder(
         scrollDirection: Axis.horizontal,

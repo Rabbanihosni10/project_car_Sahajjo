@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../screens/sign_up_screen.dart';
+import '../services/api_services.dart';
+import '../services/auth_services.dart';
 
 class SignInScreen extends StatefulWidget {
   const SignInScreen({super.key});
@@ -31,14 +33,34 @@ class _SignInScreenState extends State<SignInScreen> {
 
     setState(() => _isLoading = true);
 
-    // Simulate API call
-    await Future.delayed(const Duration(seconds: 2));
+    try {
+      final response = await ApiService.login(
+        _emailController.text.trim(),
+        _passwordController.text.trim(),
+      );
 
-    if (!mounted) return;
-    setState(() => _isLoading = false);
+      final token = response['token'] as String?;
+      if (token != null) {
+        await AuthService.saveToken(token);
+      }
 
-    // Navigate to home screen
-    Navigator.of(context).pushReplacementNamed('/home');
+      if (!mounted) return;
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(const SnackBar(content: Text('Signed in successfully')));
+      Navigator.of(context).pushReplacementNamed('/home');
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(error.toString().replaceFirst('Exception: ', '')),
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
   }
 
   @override
