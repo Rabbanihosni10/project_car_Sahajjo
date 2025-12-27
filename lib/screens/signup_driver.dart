@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
+import '../services/api_services.dart';
+import '../services/auth_services.dart';
 import 'terms_and_conditions_driver_screen.dart';
 
 class SignUpDriverScreen extends StatefulWidget {
@@ -79,18 +81,40 @@ class _SignUpDriverScreenState extends State<SignUpDriverScreen> {
 
     setState(() => _isLoading = true);
 
-    // Simulate API call
-    await Future.delayed(const Duration(seconds: 2));
+    try {
+      final response = await ApiService.registerDriver(
+        name: _fullNameController.text.trim(),
+        email: _emailController.text.trim(),
+        phone: _phoneController.text.trim(),
+        password: _passwordController.text.trim(),
+        licenseNumber: _licenseNumberController.text.trim(),
+        licenseExpiry: _licenseExpiryController.text.trim(),
+        vehicleType: _selectedVehicleType!,
+        yearsOfExperience: _yearsOfExperienceController.text.trim(),
+      );
 
-    if (!mounted) return;
-    setState(() => _isLoading = false);
+      final token = response['token'] as String?;
+      if (token != null) {
+        await AuthService.saveToken(token);
+      }
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Driver account created successfully!')),
-    );
-
-    // Navigate to home
-    Navigator.of(context).pushReplacementNamed('/home');
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Driver account created successfully!')),
+      );
+      Navigator.of(context).pushReplacementNamed('/home');
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(error.toString().replaceFirst('Exception: ', '')),
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
   }
 
   Future<void> _selectDate() async {

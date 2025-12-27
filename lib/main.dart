@@ -3,6 +3,9 @@ import 'screens/splash_screen.dart';
 import 'screens/sign_in_screen.dart';
 import 'screens/home_screen.dart';
 import 'screens/visitor_home_screen.dart';
+import 'screens/driver_home_screen.dart';
+import 'screens/owner_home_screen.dart';
+import 'screens/edit_profile_screen.dart';
 import 'screens/admin/admin_login_screen.dart';
 import 'screens/admin/admin_dashboard.dart';
 
@@ -25,7 +28,38 @@ class MyApp extends StatelessWidget {
       routes: {
         '/signin': (context) => const SignInScreen(),
         '/home': (context) => const HomeScreen(),
-        '/visitor/home': (context) => const VisitorHomeScreen(),
+        '/visitor/home': (context) {
+          final userData =
+              ModalRoute.of(context)?.settings.arguments
+                  as Map<String, dynamic>? ??
+              {};
+          return VisitorHomeScreen(userData: userData);
+        },
+        '/driver/home': (context) {
+          final userData =
+              ModalRoute.of(context)?.settings.arguments
+                  as Map<String, dynamic>? ??
+              {};
+          return DriverHomeScreen(userData: userData);
+        },
+        '/owner/home': (context) {
+          final userData =
+              ModalRoute.of(context)?.settings.arguments
+                  as Map<String, dynamic>? ??
+              {};
+          return OwnerHomeScreen(userData: userData);
+        },
+        '/edit-profile': (context) {
+          final userData =
+              ModalRoute.of(context)?.settings.arguments
+                  as Map<String, dynamic>? ??
+              {};
+          return EditProfileScreen(userData: userData);
+        },
+        '/profile': (context) {
+          // This will be handled by the home screens themselves
+          return const Scaffold(body: Center(child: Text('Profile Screen')));
+        },
         '/admin/login': (context) => const AdminLoginScreen(),
         '/admin/dashboard': (context) => const AdminDashboard(),
       },

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/gestures.dart';
+import '../services/api_services.dart';
+import '../services/auth_services.dart';
 import 'terms_and_conditions_owner_screen.dart';
 
 class SignUpCarOwnerScreen extends StatefulWidget {
@@ -79,18 +81,42 @@ class _SignUpCarOwnerScreenState extends State<SignUpCarOwnerScreen> {
 
     setState(() => _isLoading = true);
 
-    // Simulate API call
-    await Future.delayed(const Duration(seconds: 2));
+    try {
+      final response = await ApiService.registerOwner(
+        name: _fullNameController.text.trim(),
+        email: _emailController.text.trim(),
+        phone: _phoneController.text.trim(),
+        password: _passwordController.text.trim(),
+        companyName: _companyNameController.text.trim(),
+        businessRegistration: _businessRegistrationController.text.trim(),
+        numberOfCars: _numberOfCarsController.text.trim(),
+        businessType: _selectedBusinessType!,
+      );
 
-    if (!mounted) return;
-    setState(() => _isLoading = false);
+      final token = response['token'] as String?;
+      if (token != null) {
+        await AuthService.saveToken(token);
+      }
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Car Owner account created successfully!')),
-    );
-
-    // Navigate to home
-    Navigator.of(context).pushReplacementNamed('/home');
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Car Owner account created successfully!'),
+        ),
+      );
+      Navigator.of(context).pushReplacementNamed('/home');
+    } catch (error) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(error.toString().replaceFirst('Exception: ', '')),
+        ),
+      );
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
+      }
+    }
   }
 
   @override

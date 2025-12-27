@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import 'package:carousel_slider/carousel_slider.dart';
 
 class VisitorHomeScreen extends StatefulWidget {
-  const VisitorHomeScreen({super.key});
+  final Map<String, dynamic> userData;
+
+  const VisitorHomeScreen({super.key, this.userData = const {}});
 
   @override
   State<VisitorHomeScreen> createState() => _VisitorHomeScreenState();

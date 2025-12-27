@@ -44,11 +44,19 @@ class _SignInScreenState extends State<SignInScreen> {
         await AuthService.saveToken(token);
       }
 
+      // Save user data and role
+      if (response.containsKey('user')) {
+        final userData = response['user'] as Map<String, dynamic>;
+        await AuthService.saveUserData(userData);
+      }
+
       if (!mounted) return;
       ScaffoldMessenger.of(
         context,
       ).showSnackBar(const SnackBar(content: Text('Signed in successfully')));
-      Navigator.of(context).pushReplacementNamed('/home');
+
+      // Navigate based on user role
+      _navigateBasedOnRole();
     } catch (error) {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
@@ -60,6 +68,38 @@ class _SignInScreenState extends State<SignInScreen> {
       if (mounted) {
         setState(() => _isLoading = false);
       }
+    }
+  }
+
+  void _navigateBasedOnRole() async {
+    final userData = await AuthService.getUserData();
+    if (!mounted) return;
+
+    if (userData == null) {
+      Navigator.of(context).pushReplacementNamed('/home');
+      return;
+    }
+
+    final role = userData['role'] as String?;
+
+    switch (role) {
+      case 'driver':
+        Navigator.of(
+          context,
+        ).pushReplacementNamed('/driver/home', arguments: userData);
+        break;
+      case 'owner':
+      case 'carOwner':
+        Navigator.of(
+          context,
+        ).pushReplacementNamed('/owner/home', arguments: userData);
+        break;
+      case 'visitor':
+      default:
+        Navigator.of(
+          context,
+        ).pushReplacementNamed('/visitor/home', arguments: userData);
+        break;
     }
   }
 

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:async';
 import 'onboarding_screen.dart';
+import '../services/auth_services.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -35,12 +36,47 @@ class _SplashScreenState extends State<SplashScreen>
 
     _animationController.forward();
 
-    // Navigate to onboarding screen after delay
+    // Navigate based on login status and role
     Timer(const Duration(seconds: 3), () {
+      _navigateBasedOnAuthStatus();
+    });
+  }
+
+  Future<void> _navigateBasedOnAuthStatus() async {
+    final isLoggedIn = await AuthService.isLoggedIn();
+
+    if (!mounted) return;
+
+    if (isLoggedIn) {
+      // User is logged in, navigate to appropriate home screen
+      final userData = await AuthService.getUserData();
+      final role = userData?['role'] as String? ?? 'visitor';
+
+      switch (role) {
+        case 'driver':
+          Navigator.of(
+            context,
+          ).pushReplacementNamed('/driver/home', arguments: userData ?? {});
+          break;
+        case 'owner':
+        case 'carOwner':
+          Navigator.of(
+            context,
+          ).pushReplacementNamed('/owner/home', arguments: userData ?? {});
+          break;
+        case 'visitor':
+        default:
+          Navigator.of(
+            context,
+          ).pushReplacementNamed('/visitor/home', arguments: userData ?? {});
+          break;
+      }
+    } else {
+      // User not logged in, navigate to onboarding
       Navigator.of(context).pushReplacement(
         MaterialPageRoute(builder: (context) => const OnboardingScreen()),
       );
-    });
+    }
   }
 
   @override
