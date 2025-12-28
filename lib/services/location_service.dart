@@ -137,7 +137,9 @@ class LocationService {
   }
 
   /// Get active drivers in real-time
-  static void getActiveDriversRealtime(Function(Map<String, dynamic>) callback) {
+  static void getActiveDriversRealtime(
+    Function(Map<String, dynamic>) callback,
+  ) {
     _socketService.requestActiveDrivers();
     _socketService.on('active_drivers', callback);
   }
@@ -151,4 +153,4 @@ class LocationService {
   static void disconnectSocket() {
     _socketService.disconnect();
   }
-
+}

@@ -1,4 +1,5 @@
 import 'package:socket_io_client/socket_io_client.dart' as IO;
+import 'package:cars_ahajjo/services/notification_service.dart';
 
 class SocketService {
   static final SocketService _instance = SocketService._internal();
@@ -80,6 +81,12 @@ class SocketService {
     socket.on('message_received', (data) {
       print('Message received: $data');
       _emit('message_received', data);
+      // Show local notification
+      NotificationService().showNotification(
+        title: 'New Message',
+        body: data['message'] ?? 'You have a new message',
+        payload: 'message',
+      );
     });
 
     socket.on('user_typing', (data) {
@@ -91,17 +98,38 @@ class SocketService {
     socket.on('driver_status_updated', (data) {
       print('Driver status updated: $data');
       _emit('driver_status_updated', data);
+      NotificationService().showNotification(
+        title: 'Driver Status',
+        body: 'Driver ${data['driverId']} is now ${data['status']}',
+        payload: 'status',
+      );
     });
 
     // Ride Requests
     socket.on('incoming_ride_request', (data) {
       print('Incoming ride request: $data');
       _emit('incoming_ride_request', data);
+      NotificationService().showNotification(
+        title: 'Ride Request',
+        body: 'New ride request from ${data['riderId']}',
+        payload: 'ride_request',
+      );
     });
 
     socket.on('ride_response_received', (data) {
       print('Ride response received: $data');
       _emit('ride_response_received', data);
+    });
+
+    // Admin Announcements
+    socket.on('announcement', (data) {
+      print('Announcement: $data');
+      _emit('announcement', data);
+      NotificationService().showNotification(
+        title: data['title'] ?? 'Announcement',
+        body: data['message'] ?? '',
+        payload: 'announcement',
+      );
     });
   }
 

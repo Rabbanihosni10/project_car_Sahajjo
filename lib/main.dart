@@ -9,6 +9,7 @@ import 'screens/edit_profile_screen.dart';
 import 'screens/wallet_screen.dart';
 import 'screens/admin/admin_login_screen.dart';
 import 'screens/admin/admin_dashboard.dart';
+import 'screens/notifications_screen.dart';
 
 void main() {
   runApp(const MyApp());
@@ -70,6 +71,7 @@ class MyApp extends StatelessWidget {
         },
         '/admin/login': (context) => const AdminLoginScreen(),
         '/admin/dashboard': (context) => const AdminDashboard(),
+        '/notifications': (context) => const NotificationsScreen(),
       },
     );
   }
