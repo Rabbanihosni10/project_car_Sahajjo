@@ -14,7 +14,6 @@ class DriverLiveLocationScreen extends StatefulWidget {
 class _DriverLiveLocationScreenState extends State<DriverLiveLocationScreen> {
   late GoogleMapController mapController;
   Position? _currentPosition;
-  bool _isLocationEnabled = false;
   bool _isSharing = false;
 
   final Set<Marker> markers = {};
@@ -60,7 +59,6 @@ class _DriverLiveLocationScreenState extends State<DriverLiveLocationScreen> {
       setState(() {
         _currentPosition = position;
         _initialPosition = LatLng(position.latitude, position.longitude);
-        _isLocationEnabled = true;
         markers.add(
           Marker(
             markerId: const MarkerId('current_location'),

@@ -1,11 +1,9 @@
 import 'package:http/http.dart' as http;
-import 'package:cars_ahajjo/utils/constrains.dart';
 import 'package:cars_ahajjo/services/auth_services.dart';
 import 'dart:convert';
 
 class PaymentService {
-  static const String _baseUrl = AppConstraints.baseUrl;
-  static final AuthService _authService = AuthService();
+  static const String _baseUrl = 'http://localhost:5003/api';
 
   /// Create payment intent
   static Future<Map<String, dynamic>?> createPaymentIntent({
@@ -15,7 +13,7 @@ class PaymentService {
     required String paymentMethod,
   }) async {
     try {
-      final token = await _authService.getToken();
+      final token = await AuthService.getToken();
       if (token == null) return null;
 
       final response = await http.post(
@@ -51,7 +49,7 @@ class PaymentService {
     required String paymentIntentId,
   }) async {
     try {
-      final token = await _authService.getToken();
+      final token = await AuthService.getToken();
       if (token == null) return false;
 
       final response = await http.post(
@@ -84,7 +82,7 @@ class PaymentService {
     int skip = 0,
   }) async {
     try {
-      final token = await _authService.getToken();
+      final token = await AuthService.getToken();
       if (token == null) return [];
 
       final response = await http.get(
@@ -110,7 +108,7 @@ class PaymentService {
     String transactionId,
   ) async {
     try {
-      final token = await _authService.getToken();
+      final token = await AuthService.getToken();
       if (token == null) return null;
 
       final response = await http.get(
@@ -134,7 +132,7 @@ class PaymentService {
   /// Get wallet balance
   static Future<double> getWalletBalance() async {
     try {
-      final token = await _authService.getToken();
+      final token = await AuthService.getToken();
       if (token == null) return 0;
 
       final response = await http.get(
@@ -160,7 +158,7 @@ class PaymentService {
     String? reason,
   }) async {
     try {
-      final token = await _authService.getToken();
+      final token = await AuthService.getToken();
       if (token == null) return false;
 
       final response = await http.post(

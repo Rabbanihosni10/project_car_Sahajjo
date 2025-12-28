@@ -1,16 +1,14 @@
 import 'package:http/http.dart' as http;
-import 'package:cars_ahajjo/utils/constrains.dart';
 import 'package:cars_ahajjo/services/auth_services.dart';
 import 'dart:convert';
 
 class LocationService {
-  static const String _baseUrl = AppConstraints.baseUrl;
-  static final AuthService _authService = AuthService();
+  static const String _baseUrl = 'http://localhost:5003/api';
 
   /// Update driver's current location
   static Future<bool> updateLocation(double latitude, double longitude) async {
     try {
-      final token = await _authService.getToken();
+      final token = await AuthService.getToken();
       if (token == null) return false;
 
       final response = await http.post(
@@ -39,7 +37,7 @@ class LocationService {
     String driverId,
   ) async {
     try {
-      final token = await _authService.getToken();
+      final token = await AuthService.getToken();
       if (token == null) return null;
 
       final response = await http.get(
@@ -67,7 +65,7 @@ class LocationService {
     double maxDistance = 5000, // 5km in meters
   }) async {
     try {
-      final token = await _authService.getToken();
+      final token = await AuthService.getToken();
       if (token == null) return [];
 
       final response = await http.get(
@@ -93,7 +91,7 @@ class LocationService {
   /// Get all garages
   static Future<List<dynamic>> getAllGarages() async {
     try {
-      final token = await _authService.getToken();
+      final token = await AuthService.getToken();
       if (token == null) return [];
 
       final response = await http.get(

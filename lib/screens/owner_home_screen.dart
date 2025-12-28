@@ -544,7 +544,7 @@ class _OwnerHomeScreenState extends State<OwnerHomeScreen> {
   }
 
   Widget _buildChatTab() {
-    return ConversationsScreen(currentUser: userData);
+    return ConversationsScreen(currentUser: widget.userData);
   }
 
   Widget _buildProfileTab() {

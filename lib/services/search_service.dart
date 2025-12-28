@@ -1,11 +1,9 @@
 import 'package:http/http.dart' as http;
-import 'package:cars_ahajjo/utils/constrains.dart';
 import 'package:cars_ahajjo/services/auth_services.dart';
 import 'dart:convert';
 
 class SearchService {
-  static const String _baseUrl = AppConstraints.baseUrl;
-  static final AuthService _authService = AuthService();
+  static const String _baseUrl = 'http://localhost:5003/api';
 
   /// Search drivers by name, email, or phone
   static Future<List<dynamic>> searchDrivers(
@@ -14,7 +12,7 @@ class SearchService {
     int skip = 0,
   }) async {
     try {
-      final token = await _authService.getToken();
+      final token = await AuthService.getToken();
       if (token == null) return [];
 
       final response = await http.get(
@@ -46,7 +44,7 @@ class SearchService {
     int skip = 0,
   }) async {
     try {
-      final token = await _authService.getToken();
+      final token = await AuthService.getToken();
       if (token == null) return [];
 
       String url = '$_baseUrl/search/drivers/filter?limit=$limit&skip=$skip';
@@ -84,7 +82,7 @@ class SearchService {
     int skip = 0,
   }) async {
     try {
-      final token = await _authService.getToken();
+      final token = await AuthService.getToken();
       if (token == null) return [];
 
       final response = await http.get(
@@ -113,7 +111,7 @@ class SearchService {
     int skip = 0,
   }) async {
     try {
-      final token = await _authService.getToken();
+      final token = await AuthService.getToken();
       if (token == null) return [];
 
       final response = await http.get(
@@ -142,7 +140,7 @@ class SearchService {
     int skip = 0,
   }) async {
     try {
-      final token = await _authService.getToken();
+      final token = await AuthService.getToken();
       if (token == null) return [];
 
       String url = '$_baseUrl/search/garages/filter?limit=$limit&skip=$skip';

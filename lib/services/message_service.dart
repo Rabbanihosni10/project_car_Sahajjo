@@ -1,16 +1,14 @@
 import 'package:http/http.dart' as http;
-import 'package:cars_ahajjo/utils/constrains.dart';
 import 'package:cars_ahajjo/services/auth_services.dart';
 import 'dart:convert';
 
 class MessageService {
-  static const String _baseUrl = AppConstraints.baseUrl;
-  static final AuthService _authService = AuthService();
+  static const String _baseUrl = 'http://localhost:5003/api';
 
   /// Get all conversations
   static Future<List<dynamic>> getConversations() async {
     try {
-      final token = await _authService.getToken();
+      final token = await AuthService.getToken();
       if (token == null) return [];
 
       final response = await http.get(
@@ -34,7 +32,7 @@ class MessageService {
   /// Get chat history with specific user
   static Future<List<dynamic>> getChatHistory(String otherUserId) async {
     try {
-      final token = await _authService.getToken();
+      final token = await AuthService.getToken();
       if (token == null) return [];
 
       final response = await http.get(
@@ -63,7 +61,7 @@ class MessageService {
     String? fileUrl,
   }) async {
     try {
-      final token = await _authService.getToken();
+      final token = await AuthService.getToken();
       if (token == null) return false;
 
       final response = await http.post(
@@ -95,7 +93,7 @@ class MessageService {
   /// Delete a message
   static Future<bool> deleteMessage(String messageId) async {
     try {
-      final token = await _authService.getToken();
+      final token = await AuthService.getToken();
       if (token == null) return false;
 
       final response = await http.delete(
@@ -118,7 +116,7 @@ class MessageService {
   /// Mark messages as read
   static Future<bool> markAsRead(String otherUserId) async {
     try {
-      final token = await _authService.getToken();
+      final token = await AuthService.getToken();
       if (token == null) return false;
 
       final response = await http.put(
@@ -144,7 +142,7 @@ class MessageService {
   /// Get unread count
   static Future<int> getUnreadCount() async {
     try {
-      final token = await _authService.getToken();
+      final token = await AuthService.getToken();
       if (token == null) return 0;
 
       final response = await http.get(
