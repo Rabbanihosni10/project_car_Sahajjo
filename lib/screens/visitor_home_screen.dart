@@ -11,6 +11,7 @@ class VisitorHomeScreen extends StatefulWidget {
 
 class _VisitorHomeScreenState extends State<VisitorHomeScreen> {
   int _currentCarouselIndex = 0;
+  int _selectedIndex = 0;
 
   final List<Map<String, String>> _advertisements = [
     {
@@ -68,19 +69,28 @@ class _VisitorHomeScreenState extends State<VisitorHomeScreen> {
       'price': '৳500',
       'brand': 'Toyota',
       'rating': '4.5',
+      'image': 'https://via.placeholder.com/150x150?text=Oil+Filter',
     },
     {
       'name': 'Brake Pads Set',
       'price': '৳2,500',
       'brand': 'Honda',
       'rating': '4.7',
+      'image': 'https://via.placeholder.com/150x150?text=Brake+Pads',
     },
-    {'name': 'Air Filter', 'price': '৳350', 'brand': 'Suzuki', 'rating': '4.3'},
+    {
+      'name': 'Air Filter',
+      'price': '৳350',
+      'brand': 'Suzuki',
+      'rating': '4.3',
+      'image': 'https://via.placeholder.com/150x150?text=Air+Filter',
+    },
     {
       'name': 'Spark Plugs',
       'price': '৳800',
       'brand': 'Universal',
       'rating': '4.6',
+      'image': 'https://via.placeholder.com/150x150?text=Spark+Plugs',
     },
   ];
 
@@ -90,18 +100,21 @@ class _VisitorHomeScreenState extends State<VisitorHomeScreen> {
       'price': '৳25,00,000',
       'mileage': '45,000 km',
       'rating': '4.8',
+      'image': 'https://via.placeholder.com/200x150?text=Toyota+Corolla',
     },
     {
       'name': 'Honda Civic 2019',
       'price': '৳28,50,000',
       'mileage': '38,000 km',
       'rating': '4.7',
+      'image': 'https://via.placeholder.com/200x150?text=Honda+Civic',
     },
     {
       'name': 'Suzuki Swift 2021',
       'price': '৳18,00,000',
       'mileage': '25,000 km',
       'rating': '4.6',
+      'image': 'https://via.placeholder.com/200x150?text=Suzuki+Swift',
     },
   ];
 
@@ -160,70 +173,229 @@ class _VisitorHomeScreenState extends State<VisitorHomeScreen> {
           ],
         ),
         actions: [
-          Container(
-            margin: const EdgeInsets.only(right: 16),
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.2),
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(color: Colors.white, width: 1.5),
-            ),
-            child: const Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(Icons.person_outline, color: Colors.white, size: 16),
-                SizedBox(width: 4),
-                Text(
-                  'Visitor',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 12,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
+          IconButton(
+            icon: const Icon(Icons.person),
+            onPressed: () {
+              Navigator.pushNamed(
+                context,
+                '/profile',
+                arguments: widget.userData,
+              );
+            },
           ),
         ],
       ),
-      body: SingleChildScrollView(
+      body: _buildBody(),
+      bottomNavigationBar: BottomNavigationBar(
+        currentIndex: _selectedIndex,
+        type: BottomNavigationBarType.fixed,
+        items: const [
+          BottomNavigationBarItem(icon: Icon(Icons.home), label: 'Home'),
+          BottomNavigationBarItem(icon: Icon(Icons.map), label: 'Map'),
+          BottomNavigationBarItem(icon: Icon(Icons.forum), label: 'Forum'),
+          BottomNavigationBarItem(icon: Icon(Icons.chat), label: 'Messages'),
+        ],
+        onTap: (index) {
+          setState(() => _selectedIndex = index);
+        },
+      ),
+    );
+  }
+
+  Widget _buildBody() {
+    switch (_selectedIndex) {
+      case 0:
+        return _buildHomeTab();
+      case 1:
+        return _buildMapTab();
+      case 2:
+        return _buildForumTab();
+      case 3:
+        return _buildMessagesTab();
+      default:
+        return _buildHomeTab();
+    }
+  }
+
+  Widget _buildHomeTab() {
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Advertisement Carousel
+          _buildCarousel(),
+
+          const SizedBox(height: 20),
+
+          // Facilities Section
+          _buildSectionTitle('Our Services'),
+          _buildFacilities(),
+
+          const SizedBox(height: 20),
+
+          // Car Parts Section
+          _buildSectionTitle('Car Parts'),
+          _buildCarParts(),
+
+          const SizedBox(height: 20),
+
+          // Cars for Sale Section
+          _buildSectionTitle('Cars for Sale'),
+          _buildCarsForSale(),
+
+          const SizedBox(height: 20),
+
+          // User Stats Section
+          _buildSectionTitle('Our Community'),
+          _buildUserStats(),
+
+          const SizedBox(height: 20),
+
+          // Job Offers Section
+          _buildSectionTitle('Job Opportunities'),
+          _buildJobOffers(),
+
+          const SizedBox(height: 20),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildMapTab() {
+    return Center(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(16.0),
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Advertisement Carousel
-            _buildCarousel(),
-
+            Icon(Icons.map, size: 80, color: Colors.blue[400]),
             const SizedBox(height: 20),
+            const Text(
+              'Find Nearby Services',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 12),
+            const Text(
+              'Locate nearby garages, gas stations, and service centers',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 14, color: Colors.grey),
+            ),
+            const SizedBox(height: 24),
+            SizedBox(
+              width: double.infinity,
+              height: 50,
+              child: ElevatedButton.icon(
+                onPressed: () {
+                  Navigator.pushNamed(
+                    context,
+                    '/map',
+                    arguments: widget.userData,
+                  );
+                },
+                icon: const Icon(Icons.location_on),
+                label: const Text('Open Map'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.blue[400],
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
-            // Facilities Section
-            _buildSectionTitle('Our Services'),
-            _buildFacilities(),
-
+  Widget _buildForumTab() {
+    return Center(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.forum, size: 80, color: Colors.blue[400]),
             const SizedBox(height: 20),
+            const Text(
+              'Community Forum',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 12),
+            const Text(
+              'Join discussions, ask questions, and share experiences',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 14, color: Colors.grey),
+            ),
+            const SizedBox(height: 24),
+            SizedBox(
+              width: double.infinity,
+              height: 50,
+              child: ElevatedButton.icon(
+                onPressed: () {
+                  Navigator.pushNamed(
+                    context,
+                    '/forum',
+                    arguments: widget.userData,
+                  );
+                },
+                icon: const Icon(Icons.chat),
+                label: const Text('Go to Forum'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.green[400],
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
-            // Car Parts Section
-            _buildSectionTitle('Car Parts'),
-            _buildCarParts(),
-
+  Widget _buildMessagesTab() {
+    return Center(
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.chat_bubble, size: 80, color: Colors.blue[400]),
             const SizedBox(height: 20),
-
-            // Cars for Sale Section
-            _buildSectionTitle('Cars for Sale'),
-            _buildCarsForSale(),
-
-            const SizedBox(height: 20),
-
-            // User Stats Section
-            _buildSectionTitle('Our Community'),
-            _buildUserStats(),
-
-            const SizedBox(height: 20),
-
-            // Job Offers Section
-            _buildSectionTitle('Job Opportunities'),
-            _buildJobOffers(),
-
-            const SizedBox(height: 20),
+            const Text(
+              'Messages',
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 12),
+            const Text(
+              'Chat with drivers, owners, and other users',
+              textAlign: TextAlign.center,
+              style: TextStyle(fontSize: 14, color: Colors.grey),
+            ),
+            const SizedBox(height: 24),
+            SizedBox(
+              width: double.infinity,
+              height: 50,
+              child: ElevatedButton.icon(
+                onPressed: () {
+                  Navigator.pushNamed(
+                    context,
+                    '/messages',
+                    arguments: widget.userData,
+                  );
+                },
+                icon: const Icon(Icons.message),
+                label: const Text('Open Messages'),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.orange[400],
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+              ),
+            ),
           ],
         ),
       ),
@@ -414,7 +586,7 @@ class _VisitorHomeScreenState extends State<VisitorHomeScreen> {
 
   Widget _buildCarParts() {
     return Container(
-      height: 140,
+      height: 200,
       margin: const EdgeInsets.only(top: 12),
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
@@ -436,82 +608,118 @@ class _VisitorHomeScreenState extends State<VisitorHomeScreen> {
                 ),
               ],
             ),
-            child: Padding(
-              padding: const EdgeInsets.all(12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(
-                          horizontal: 6,
-                          vertical: 2,
-                        ),
-                        decoration: BoxDecoration(
-                          color: Colors.blue.shade100,
-                          borderRadius: BorderRadius.circular(4),
-                        ),
-                        child: Text(
-                          part['brand']!,
-                          style: const TextStyle(
-                            fontSize: 10,
-                            color: Colors.blue,
-                            fontWeight: FontWeight.bold,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Image section
+                Container(
+                  height: 100,
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade200,
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(12),
+                      topRight: Radius.circular(12),
+                    ),
+                  ),
+                  child: ClipRRect(
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(12),
+                      topRight: Radius.circular(12),
+                    ),
+                    child: Image.network(
+                      part['image'] ?? '',
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return const Center(
+                          child: Icon(
+                            Icons.build,
+                            size: 40,
+                            color: Colors.grey,
                           ),
-                        ),
+                        );
+                      },
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 6,
+                              vertical: 2,
+                            ),
+                            decoration: BoxDecoration(
+                              color: Colors.blue.shade100,
+                              borderRadius: BorderRadius.circular(4),
+                            ),
+                            child: Text(
+                              part['brand']!,
+                              style: const TextStyle(
+                                fontSize: 10,
+                                color: Colors.blue,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                          const Spacer(),
+                          const Icon(Icons.star, color: Colors.amber, size: 14),
+                          const SizedBox(width: 2),
+                          Text(
+                            part['rating']!,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
                       ),
-                      const Spacer(),
-                      const Icon(Icons.star, color: Colors.amber, size: 14),
-                      const SizedBox(width: 2),
+                      const SizedBox(height: 6),
                       Text(
-                        part['rating']!,
+                        part['name']!,
                         style: const TextStyle(
                           fontSize: 12,
                           fontWeight: FontWeight.bold,
+                          color: Colors.black87,
                         ),
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 6),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(
+                            part['price']!,
+                            style: const TextStyle(
+                              fontSize: 14,
+                              fontWeight: FontWeight.bold,
+                              color: Color(0xFF2196F3),
+                            ),
+                          ),
+                          Container(
+                            padding: const EdgeInsets.all(4),
+                            decoration: BoxDecoration(
+                              color: const Color(0xFF2196F3),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: const Icon(
+                              Icons.shopping_cart,
+                              color: Colors.white,
+                              size: 14,
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
-                  const SizedBox(height: 8),
-                  Text(
-                    part['name']!,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black87,
-                    ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const Spacer(),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Text(
-                        part['price']!,
-                        style: const TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                          color: Color(0xFF2196F3),
-                        ),
-                      ),
-                      Container(
-                        padding: const EdgeInsets.all(6),
-                        decoration: BoxDecoration(
-                          color: const Color(0xFF2196F3),
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        child: const Icon(
-                          Icons.shopping_cart,
-                          color: Colors.white,
-                          size: 16,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
           );
         },
@@ -521,7 +729,7 @@ class _VisitorHomeScreenState extends State<VisitorHomeScreen> {
 
   Widget _buildCarsForSale() {
     return Container(
-      height: 190,
+      height: 230,
       margin: const EdgeInsets.only(top: 12),
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
@@ -543,71 +751,96 @@ class _VisitorHomeScreenState extends State<VisitorHomeScreen> {
                 ),
               ],
             ),
-            child: Padding(
-              padding: const EdgeInsets.all(12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Container(
-                    height: 80,
-                    decoration: BoxDecoration(
-                      color: Colors.grey.shade200,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: const Center(
-                      child: Icon(
-                        Icons.directions_car,
-                        size: 50,
-                        color: Colors.grey,
-                      ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                // Image section
+                Container(
+                  height: 120,
+                  width: double.infinity,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade200,
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(12),
+                      topRight: Radius.circular(12),
                     ),
                   ),
-                  const SizedBox(height: 8),
-                  Text(
-                    car['name']!,
-                    style: const TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black87,
+                  child: ClipRRect(
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(12),
+                      topRight: Radius.circular(12),
                     ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
+                    child: Image.network(
+                      car['image'] ?? '',
+                      fit: BoxFit.cover,
+                      errorBuilder: (context, error, stackTrace) {
+                        return const Center(
+                          child: Icon(
+                            Icons.directions_car,
+                            size: 50,
+                            color: Colors.grey,
+                          ),
+                        );
+                      },
+                    ),
                   ),
-                  const SizedBox(height: 4),
-                  Row(
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(12),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Icon(Icons.speed, size: 14, color: Colors.grey.shade600),
-                      const SizedBox(width: 4),
                       Text(
-                        car['mileage']!,
-                        style: TextStyle(
-                          fontSize: 11,
-                          color: Colors.grey.shade600,
-                        ),
-                      ),
-                      const Spacer(),
-                      const Icon(Icons.star, color: Colors.amber, size: 14),
-                      const SizedBox(width: 2),
-                      Text(
-                        car['rating']!,
+                        car['name']!,
                         style: const TextStyle(
-                          fontSize: 12,
+                          fontSize: 14,
                           fontWeight: FontWeight.bold,
+                          color: Colors.black87,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                      const SizedBox(height: 6),
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.speed,
+                            size: 14,
+                            color: Colors.grey.shade600,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            car['mileage']!,
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: Colors.grey.shade600,
+                            ),
+                          ),
+                          const Spacer(),
+                          const Icon(Icons.star, color: Colors.amber, size: 14),
+                          const SizedBox(width: 2),
+                          Text(
+                            car['rating']!,
+                            style: const TextStyle(
+                              fontSize: 12,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        car['price']!,
+                        style: const TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Color(0xFF4CAF50),
                         ),
                       ),
                     ],
                   ),
-                  const SizedBox(height: 8),
-                  Text(
-                    car['price']!,
-                    style: const TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Color(0xFF4CAF50),
-                    ),
-                  ),
-                ],
-              ),
+                ),
+              ],
             ),
           );
         },

@@ -1,10 +1,11 @@
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:cars_ahajjo/utils/constrains.dart';
 import '../models/forum_post.dart';
 
 class ForumService {
-  static const String baseUrl = 'http://localhost:5003/api/forum';
+  static String get baseUrl => '${AppConstants.baseUrl}/forum';
 
   static Future<String?> _getToken() async {
     final prefs = await SharedPreferences.getInstance();

@@ -28,7 +28,11 @@ class _OwnerHomeScreenState extends State<OwnerHomeScreen> {
           IconButton(
             icon: const Icon(Icons.person),
             onPressed: () {
-              Navigator.pushNamed(context, '/profile');
+              Navigator.pushNamed(
+                context,
+                '/profile',
+                arguments: widget.userData,
+              );
             },
           ),
           IconButton(
@@ -192,8 +196,10 @@ class _OwnerHomeScreenState extends State<OwnerHomeScreen> {
                 'AI Chat',
                 Icons.smart_toy,
                 Colors.blue[400]!,
-                onTap: () => ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('AI Chat Assistant')),
+                onTap: () => Navigator.pushNamed(
+                  context,
+                  '/ai-chat',
+                  arguments: widget.userData,
                 ),
               ),
               _buildFeatureCard(
@@ -208,8 +214,10 @@ class _OwnerHomeScreenState extends State<OwnerHomeScreen> {
                 'Car Info',
                 Icons.info,
                 Colors.green[400]!,
-                onTap: () => ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('View car information')),
+                onTap: () => Navigator.pushNamed(
+                  context,
+                  '/car-info',
+                  arguments: widget.userData,
                 ),
               ),
               _buildFeatureCard(

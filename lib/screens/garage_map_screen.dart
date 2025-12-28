@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:cars_ahajjo/services/location_service.dart';
+import 'package:cars_ahajjo/services/garage_service.dart';
 
 class GarageMapScreen extends StatefulWidget {
-  const GarageMapScreen({super.key});
+  final Map<String, dynamic>? userData;
+
+  const GarageMapScreen({super.key, this.userData});
 
   @override
   State<GarageMapScreen> createState() => _GarageMapScreenState();
@@ -71,10 +73,10 @@ class _GarageMapScreenState extends State<GarageMapScreen> {
     if (_currentPosition == null) return;
 
     try {
-      final nearby = await LocationService.getNearbyGarages(
-        _currentPosition!.latitude,
-        _currentPosition!.longitude,
-        maxDistance: 10000, // 10km
+      final nearby = await GarageService.getNearbyGarages(
+        latitude: _currentPosition!.latitude,
+        longitude: _currentPosition!.longitude,
+        radiusInKm: 10,
       );
 
       setState(() {

@@ -30,7 +30,11 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
           IconButton(
             icon: const Icon(Icons.person),
             onPressed: () {
-              Navigator.pushNamed(context, '/profile');
+              Navigator.pushNamed(
+                context,
+                '/profile',
+                arguments: widget.userData,
+              );
             },
           ),
           IconButton(
@@ -217,8 +221,10 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
                 'AI Chat',
                 Icons.smart_toy,
                 Colors.blue[400]!,
-                onTap: () => ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('AI Chat Assistant')),
+                onTap: () => Navigator.pushNamed(
+                  context,
+                  '/ai-chat',
+                  arguments: widget.userData,
                 ),
               ),
               _buildFeatureCard(

@@ -6,7 +6,14 @@ import 'screens/visitor_home_screen.dart';
 import 'screens/driver_home_screen.dart';
 import 'screens/owner_home_screen.dart';
 import 'screens/edit_profile_screen.dart';
+import 'screens/profile_screen.dart';
 import 'screens/wallet_screen.dart';
+import 'screens/forum_screen.dart';
+import 'screens/driver_details_screen.dart';
+import 'screens/messages_screen.dart';
+import 'screens/garage_map_screen.dart';
+import 'screens/ai_chat_screen.dart';
+import 'screens/car_info_screen.dart';
 import 'screens/admin/admin_login_screen.dart';
 import 'screens/admin/admin_dashboard.dart';
 import 'screens/notifications_screen.dart';
@@ -59,8 +66,11 @@ class MyApp extends StatelessWidget {
           return EditProfileScreen(userData: userData);
         },
         '/profile': (context) {
-          // This will be handled by the home screens themselves
-          return const Scaffold(body: Center(child: Text('Profile Screen')));
+          final userData =
+              ModalRoute.of(context)?.settings.arguments
+                  as Map<String, dynamic>? ??
+              {};
+          return ProfileScreen(userData: userData);
         },
         '/wallet': (context) {
           final userData =
@@ -72,6 +82,48 @@ class MyApp extends StatelessWidget {
         '/admin/login': (context) => const AdminLoginScreen(),
         '/admin/dashboard': (context) => const AdminDashboard(),
         '/notifications': (context) => const NotificationsScreen(),
+        '/forum': (context) {
+          final userData =
+              ModalRoute.of(context)?.settings.arguments
+                  as Map<String, dynamic>? ??
+              {};
+          return ForumScreen(userData: userData);
+        },
+        '/driver-details': (context) {
+          final driverData =
+              ModalRoute.of(context)?.settings.arguments
+                  as Map<String, dynamic>? ??
+              {};
+          return DriverDetailsScreen(driverData: driverData);
+        },
+        '/messages': (context) {
+          final userData =
+              ModalRoute.of(context)?.settings.arguments
+                  as Map<String, dynamic>? ??
+              {};
+          return MessagesScreen(userData: userData);
+        },
+        '/map': (context) {
+          final userData =
+              ModalRoute.of(context)?.settings.arguments
+                  as Map<String, dynamic>? ??
+              {};
+          return GarageMapScreen(userData: userData);
+        },
+        '/ai-chat': (context) {
+          final userData =
+              ModalRoute.of(context)?.settings.arguments
+                  as Map<String, dynamic>? ??
+              {};
+          return AIChatScreen(userData: userData);
+        },
+        '/car-info': (context) {
+          final userData =
+              ModalRoute.of(context)?.settings.arguments
+                  as Map<String, dynamic>? ??
+              {};
+          return CarInfoScreen(userData: userData);
+        },
       },
     );
   }

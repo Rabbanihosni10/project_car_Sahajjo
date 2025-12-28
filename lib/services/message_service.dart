@@ -1,11 +1,13 @@
 import 'package:http/http.dart' as http;
 import 'package:cars_ahajjo/services/auth_services.dart';
 import 'package:cars_ahajjo/services/socket_service.dart';
+import 'package:cars_ahajjo/utils/constrains.dart';
 import 'dart:convert';
 
 class MessageService {
-  static const String _baseUrl = 'http://localhost:5003/api';
   static final SocketService _socketService = SocketService();
+
+  static String get _baseUrl => '${AppConstants.baseUrl}/messages';
 
   /// Get all conversations
   static Future<List<dynamic>> getConversations() async {
@@ -14,7 +16,7 @@ class MessageService {
       if (token == null) return [];
 
       final response = await http.get(
-        Uri.parse('$_baseUrl/messages/conversations'),
+        Uri.parse('$_baseUrl/conversations'),
         headers: {'Authorization': 'Bearer $token'},
       );
 
@@ -38,7 +40,7 @@ class MessageService {
       if (token == null) return [];
 
       final response = await http.get(
-        Uri.parse('$_baseUrl/messages/history/$otherUserId'),
+        Uri.parse('$_baseUrl/history/$otherUserId'),
         headers: {'Authorization': 'Bearer $token'},
       );
 
@@ -67,7 +69,7 @@ class MessageService {
       if (token == null) return false;
 
       final response = await http.post(
-        Uri.parse('$_baseUrl/messages/send'),
+        Uri.parse('$_baseUrl/send'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
@@ -99,7 +101,7 @@ class MessageService {
       if (token == null) return false;
 
       final response = await http.delete(
-        Uri.parse('$_baseUrl/messages/$messageId'),
+        Uri.parse('$_baseUrl/$messageId'),
         headers: {'Authorization': 'Bearer $token'},
       );
 
@@ -122,7 +124,7 @@ class MessageService {
       if (token == null) return false;
 
       final response = await http.put(
-        Uri.parse('$_baseUrl/messages/read'),
+        Uri.parse('$_baseUrl/read'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',
@@ -148,7 +150,7 @@ class MessageService {
       if (token == null) return 0;
 
       final response = await http.get(
-        Uri.parse('$_baseUrl/messages/unread/count'),
+        Uri.parse('$_baseUrl/unread/count'),
         headers: {'Authorization': 'Bearer $token'},
       );
 

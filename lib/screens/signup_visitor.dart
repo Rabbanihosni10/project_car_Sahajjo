@@ -74,6 +74,12 @@ class _SignUpVisitorScreenState extends State<SignUpVisitorScreen> {
         await AuthService.saveToken(token);
       }
 
+      // Save user data
+      if (response.containsKey('user')) {
+        final userData = response['user'] as Map<String, dynamic>;
+        await AuthService.saveUserData(userData);
+      }
+
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Account created successfully!')),
