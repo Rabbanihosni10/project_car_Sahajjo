@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cars_ahajjo/services/payment_service.dart';
+import 'package:cars_ahajjo/screens/payment_webview_screen.dart';
 
 class WalletScreen extends StatefulWidget {
   final Map<String, dynamic>? userData;
@@ -125,14 +126,43 @@ class _WalletScreenState extends State<WalletScreen> {
                                 ),
                               ),
                               ElevatedButton.icon(
-                                onPressed: () {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(
-                                      content: Text(
-                                        'Top-up feature coming soon',
+                                onPressed: () async {
+                                  try {
+                                    final session =
+                                        await PaymentService.createSslCommerzSession(
+                                          amount: 100.0,
+                                          description: 'Wallet Top-up',
+                                        );
+                                    // Navigate to gateway
+                                    final result = await Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (_) => PaymentWebViewScreen(
+                                          gatewayUrl: session.gatewayUrl,
+                                          transactionId: session.transactionId,
+                                        ),
                                       ),
-                                    ),
-                                  );
+                                    );
+                                    if (!mounted) return;
+                                    final status =
+                                        (result as Map?)?['status'] ??
+                                        'unknown';
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text('Payment $status'),
+                                      ),
+                                    );
+                                    // Refresh wallet on completion
+                                    if (status == 'completed') {
+                                      _loadWalletData();
+                                    }
+                                  } catch (e) {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text('Payment error: $e'),
+                                      ),
+                                    );
+                                  }
                                 },
                                 icon: const Icon(Icons.add),
                                 label: const Text('Top-up'),

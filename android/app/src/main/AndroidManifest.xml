@@ -2,7 +2,8 @@
     <application
         android:label="cars_ahajjo"
         android:name="${applicationName}"
-        android:icon="@mipmap/ic_launcher">
+        android:icon="@mipmap/ic_launcher"
+        android:usesCleartextTraffic="true">
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -35,6 +36,9 @@
             android:value="2" />
     </application>
     
+    <!-- Network permission for WebView/API calls -->
+    <uses-permission android:name="android.permission.INTERNET" />
+
     <!-- Location permissions for geolocator -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
     <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
