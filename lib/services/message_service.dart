@@ -70,7 +70,7 @@ class MessageService {
       if (token == null) return [];
 
       final response = await http.get(
-        Uri.parse('$_baseUrl/history/$otherUserId'),
+        Uri.parse('$_baseUrl/chat-history/$otherUserId'),
         headers: {'Authorization': 'Bearer $token'},
       );
 
@@ -131,7 +131,7 @@ class MessageService {
       if (token == null) return false;
 
       final response = await http.delete(
-        Uri.parse('$_baseUrl/$messageId'),
+        Uri.parse('$_baseUrl/delete/$messageId'),
         headers: {'Authorization': 'Bearer $token'},
       );
 
@@ -153,8 +153,8 @@ class MessageService {
       final token = await AuthService.getToken();
       if (token == null) return false;
 
-      final response = await http.put(
-        Uri.parse('$_baseUrl/read'),
+      final response = await http.post(
+        Uri.parse('$_baseUrl/mark-as-read'),
         headers: {
           'Content-Type': 'application/json',
           'Authorization': 'Bearer $token',

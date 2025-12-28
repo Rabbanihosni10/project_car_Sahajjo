@@ -18,6 +18,7 @@ import 'screens/car_info_screen.dart';
 import 'screens/admin/admin_login_screen.dart';
 import 'screens/admin/admin_dashboard.dart';
 import 'screens/notifications_screen.dart';
+import 'screens/people_feature.dart';
 
 void main() {
   runApp(const MyApp());
@@ -132,6 +133,7 @@ class MyApp extends StatelessWidget {
               {};
           return OwnerGarageMapScreen(userData: userData);
         },
+        '/people': (context) => PeopleDiscoveryScreen(),
       },
     );
   }

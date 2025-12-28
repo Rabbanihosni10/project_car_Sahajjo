@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/auth_services.dart';
+import '../services/job_service.dart';
+import '../models/job_post.dart';
 import './driver_live_location_screen.dart';
 import './garage_map_screen.dart';
 import './conversations_screen.dart';
@@ -14,6 +16,13 @@ class DriverHomeScreen extends StatefulWidget {
 
 class _DriverHomeScreenState extends State<DriverHomeScreen> {
   int _selectedIndex = 0;
+  late Future<List<JobPost>> _jobsFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _jobsFuture = JobService.getJobPosts();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -27,16 +36,6 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
         actions: [
-          IconButton(
-            icon: const Icon(Icons.person),
-            onPressed: () {
-              Navigator.pushNamed(
-                context,
-                '/profile',
-                arguments: widget.userData,
-              );
-            },
-          ),
           IconButton(
             icon: const Icon(Icons.logout),
             onPressed: () => _showLogoutConfirmation(),
@@ -226,6 +225,12 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
                   '/ai-chat',
                   arguments: widget.userData,
                 ),
+              ),
+              _buildFeatureCard(
+                'People',
+                Icons.people,
+                Colors.purple[400]!,
+                onTap: () => Navigator.pushNamed(context, '/people'),
               ),
               _buildFeatureCard(
                 'Community Forum',
@@ -448,72 +453,197 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
             style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 16),
-          ListView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: 5,
-            itemBuilder: (context, index) => Card(
-              elevation: 2,
-              margin: const EdgeInsets.only(bottom: 12),
-              child: Padding(
-                padding: const EdgeInsets.all(12.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(
-                          'Ride #${index + 1001}',
-                          style: const TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                        Container(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 8,
-                            vertical: 4,
+          FutureBuilder<List<JobPost>>(
+            future: _jobsFuture,
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              }
+
+              if (snapshot.hasError) {
+                return Center(
+                  child: Column(
+                    children: [
+                      Icon(
+                        Icons.error_outline,
+                        size: 60,
+                        color: Colors.red[400],
+                      ),
+                      const SizedBox(height: 10),
+                      Text('Error loading jobs: ${snapshot.error}'),
+                      const SizedBox(height: 16),
+                      ElevatedButton(
+                        onPressed: () {
+                          setState(
+                            () => _jobsFuture = JobService.getJobPosts(),
+                          );
+                        },
+                        child: const Text('Retry'),
+                      ),
+                    ],
+                  ),
+                );
+              }
+
+              final jobs = snapshot.data ?? [];
+
+              if (jobs.isEmpty) {
+                return Center(
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.work_off, size: 80, color: Colors.grey[400]),
+                      const SizedBox(height: 10),
+                      Text(
+                        'No available jobs at the moment',
+                        style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+                      ),
+                      const SizedBox(height: 16),
+                      ElevatedButton(
+                        onPressed: () {
+                          setState(
+                            () => _jobsFuture = JobService.getJobPosts(),
+                          );
+                        },
+                        child: const Text('Refresh'),
+                      ),
+                    ],
+                  ),
+                );
+              }
+
+              return ListView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: jobs.length,
+                itemBuilder: (context, index) {
+                  final job = jobs[index];
+                  return Card(
+                    elevation: 2,
+                    margin: const EdgeInsets.only(bottom: 12),
+                    child: Padding(
+                      padding: const EdgeInsets.all(12.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  job.title,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 14,
+                                  ),
+                                  maxLines: 2,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 4,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: Colors.green[100],
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
+                                child: const Text(
+                                  'Available',
+                                  style: TextStyle(
+                                    color: Colors.green,
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                              ),
+                            ],
                           ),
-                          decoration: BoxDecoration(
-                            color: Colors.green[100],
-                            borderRadius: BorderRadius.circular(4),
+                          const SizedBox(height: 8),
+                          if (job.description != null &&
+                              job.description!.isNotEmpty)
+                            Padding(
+                              padding: const EdgeInsets.only(bottom: 8.0),
+                              child: Text(
+                                job.description!,
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                                style: TextStyle(
+                                  fontSize: 12,
+                                  color: Colors.grey[600],
+                                ),
+                              ),
+                            ),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      'Location: ${job.location ?? 'N/A'}',
+                                      style: TextStyle(
+                                        fontSize: 12,
+                                        color: Colors.grey[600],
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      'Salary: TK ${job.salary ?? 'Not specified'}',
+                                      style: const TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 13,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
                           ),
-                          child: const Text(
-                            'Available',
-                            style: TextStyle(
-                              color: Colors.green,
-                              fontSize: 11,
-                              fontWeight: FontWeight.bold,
+                          const SizedBox(height: 8),
+                          SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton(
+                              onPressed: () async {
+                                final success = await JobService.applyForJob(
+                                  job.id,
+                                );
+                                if (mounted) {
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      content: Text(
+                                        success
+                                            ? 'Applied successfully!'
+                                            : 'Failed to apply',
+                                      ),
+                                    ),
+                                  );
+                                  if (success) {
+                                    setState(
+                                      () => _jobsFuture =
+                                          JobService.getJobPosts(),
+                                    );
+                                  }
+                                }
+                              },
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: Colors.blue[400],
+                              ),
+                              child: const Text(
+                                'Apply Now',
+                                style: TextStyle(color: Colors.white),
+                              ),
                             ),
                           ),
-                        ),
-                      ],
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'From: ${['Dhaka', 'Mirpur', 'Motijheel', 'Gulshan', 'Banani'][index]} → To: ${['Airport', 'Station', 'Mall', 'Hotel', 'Office'][index]}',
-                    ),
-                    const SizedBox(height: 4),
-                    Text('Fare: TK ${2000 + (index * 500)}'),
-                    const SizedBox(height: 8),
-                    SizedBox(
-                      width: double.infinity,
-                      child: ElevatedButton(
-                        onPressed: () =>
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Job accepted!')),
-                            ),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.blue[400],
-                        ),
-                        child: const Text(
-                          'Accept Offer',
-                          style: TextStyle(color: Colors.white),
-                        ),
+                        ],
                       ),
                     ),
-                  ],
-                ),
-              ),
-            ),
+                  );
+                },
+              );
+            },
           ),
         ],
       ),

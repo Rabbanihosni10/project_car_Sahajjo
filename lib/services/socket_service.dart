@@ -22,7 +22,10 @@ class SocketService {
       _socketUrl,
       IO.OptionBuilder()
           .setTransports(['websocket'])
-          .disableAutoConnect()
+          .enableAutoConnect()
+          .setReconnectionDelay(1000)
+          .setReconnectionDelayMax(5000)
+          .setReconnectionAttempts(5)
           .build(),
     );
 
@@ -39,6 +42,21 @@ class SocketService {
     socket.on('error', (error) {
       print('Socket error: $error');
       _emit('socket_error', {'error': error});
+    });
+
+    socket.on('connect_error', (error) {
+      print('Socket connection error: $error');
+      _emit('socket_error', {'error': error});
+    });
+
+    socket.on('reconnect_attempt', (_) {
+      print('Attempting to reconnect...');
+      _emit('socket_reconnecting', {});
+    });
+
+    socket.on('reconnect', (_) {
+      print('Socket reconnected: ${socket.id}');
+      _emit('socket_reconnected', {});
     });
 
     // Listen to all socket events

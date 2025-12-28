@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'dart:async';
 import 'onboarding_screen.dart';
 import '../services/auth_services.dart';
+import '../services/message_service.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -19,6 +20,9 @@ class _SplashScreenState extends State<SplashScreen>
   @override
   void initState() {
     super.initState();
+
+    // Initialize socket connection globally
+    MessageService.initializeSocket();
 
     // Initialize animations
     _animationController = AnimationController(

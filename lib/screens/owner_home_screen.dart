@@ -35,16 +35,6 @@ class _OwnerHomeScreenState extends State<OwnerHomeScreen> {
         ),
         actions: [
           IconButton(
-            icon: const Icon(Icons.person),
-            onPressed: () {
-              Navigator.pushNamed(
-                context,
-                '/profile',
-                arguments: widget.userData,
-              );
-            },
-          ),
-          IconButton(
             icon: const Icon(Icons.logout),
             onPressed: () => _showLogoutConfirmation(),
           ),
@@ -210,6 +200,12 @@ class _OwnerHomeScreenState extends State<OwnerHomeScreen> {
                   '/ai-chat',
                   arguments: widget.userData,
                 ),
+              ),
+              _buildFeatureCard(
+                'People',
+                Icons.people,
+                Colors.purple[400]!,
+                onTap: () => Navigator.pushNamed(context, '/people'),
               ),
               _buildFeatureCard(
                 'My Garages',
