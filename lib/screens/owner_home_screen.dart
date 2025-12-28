@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../services/auth_services.dart';
+import './conversations_screen.dart';
 
 class OwnerHomeScreen extends StatefulWidget {
   final Map<String, dynamic> userData;
@@ -543,71 +544,7 @@ class _OwnerHomeScreenState extends State<OwnerHomeScreen> {
   }
 
   Widget _buildChatTab() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Messages 💬',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 16),
-          ListView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: 10,
-            itemBuilder: (context, index) {
-              final chatPartners = [
-                'Driver - Ahmed Hassan',
-                'Driver - Karim Khan',
-                'Owner - Ali Khan',
-                'Driver - Hassan Ali',
-                'Owner - Rana Begum',
-                'Driver - Shakib Islam',
-                'Owner - Selim Ahmed',
-                'Driver - Babul Kumar',
-                'Owner - Noor Hossain',
-                'Driver - Farhan Khan',
-              ];
-              final messages = [
-                'Car is ready for pickup',
-                'Can I take break now?',
-                'Let\'s discuss partnership',
-                'Completed ride successfully',
-                'Car maintenance needed',
-                'Available for night shift?',
-                'Thanks for support',
-                'Ready for duty',
-                'Business update',
-                'Confirming schedule',
-              ];
-
-              return Card(
-                margin: const EdgeInsets.only(bottom: 8),
-                child: ListTile(
-                  leading: CircleAvatar(
-                    backgroundColor: Colors.blue[300 + (index * 100)],
-                    child: Text(
-                      chatPartners[index][0],
-                      style: const TextStyle(color: Colors.white),
-                    ),
-                  ),
-                  title: Text(chatPartners[index]),
-                  subtitle: Text(messages[index]),
-                  trailing: const Icon(Icons.arrow_forward),
-                  onTap: () => ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Opening chat with ${chatPartners[index]}'),
-                    ),
-                  ),
-                ),
-              );
-            },
-          ),
-        ],
-      ),
-    );
+    return ConversationsScreen(currentUser: userData);
   }
 
   Widget _buildProfileTab() {

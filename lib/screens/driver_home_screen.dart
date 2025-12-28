@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import '../services/auth_services.dart';
+import './driver_live_location_screen.dart';
+import './garage_map_screen.dart';
+import './conversations_screen.dart';
 
 class DriverHomeScreen extends StatefulWidget {
   final Map<String, dynamic> userData;
@@ -97,6 +100,58 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
           ),
           const SizedBox(height: 20),
 
+          // Wallet Quick Access
+          Card(
+            elevation: 2,
+            color: Colors.green[50],
+            child: Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'Wallet Balance 💰',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.w500,
+                          color: Colors.grey,
+                        ),
+                      ),
+                      const SizedBox(height: 8),
+                      const Text(
+                        'TK 45,500',
+                        style: TextStyle(
+                          fontSize: 24,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.green,
+                        ),
+                      ),
+                    ],
+                  ),
+                  ElevatedButton.icon(
+                    onPressed: () {
+                      Navigator.pushNamed(
+                        context,
+                        '/wallet',
+                        arguments: widget.userData,
+                      );
+                    },
+                    icon: const Icon(Icons.account_balance_wallet),
+                    label: const Text('View'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: Colors.green[600],
+                      foregroundColor: Colors.white,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          const SizedBox(height: 20),
+
           // Driver Stats Card
           Card(
             elevation: 2,
@@ -137,6 +192,28 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
             physics: const NeverScrollableScrollPhysics(),
             children: [
               _buildFeatureCard(
+                'Share Location',
+                Icons.location_on,
+                Colors.red[400]!,
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const DriverLiveLocationScreen(),
+                  ),
+                ),
+              ),
+              _buildFeatureCard(
+                'Find Garages',
+                Icons.location_on_outlined,
+                Colors.indigo[400]!,
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const GarageMapScreen(),
+                  ),
+                ),
+              ),
+              _buildFeatureCard(
                 'AI Chat',
                 Icons.smart_toy,
                 Colors.blue[400]!,
@@ -151,22 +228,6 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
                 onTap: () => ScaffoldMessenger.of(
                   context,
                 ).showSnackBar(const SnackBar(content: Text('To-Do List'))),
-              ),
-              _buildFeatureCard(
-                'Calculator',
-                Icons.calculate,
-                Colors.orange[400]!,
-                onTap: () => ScaffoldMessenger.of(
-                  context,
-                ).showSnackBar(const SnackBar(content: Text('Calculator'))),
-              ),
-              _buildFeatureCard(
-                'Advertisements',
-                Icons.notifications,
-                Colors.purple[400]!,
-                onTap: () => ScaffoldMessenger.of(
-                  context,
-                ).showSnackBar(const SnackBar(content: Text('View Ads'))),
               ),
             ],
           ),
@@ -452,67 +513,7 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
   }
 
   Widget _buildChatTab() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Messages 💬',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 16),
-          ListView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: 8,
-            itemBuilder: (context, index) {
-              final chatPartners = [
-                'Car Owner - Ali',
-                'Driver - Karim',
-                'Car Owner - Rana',
-                'Driver - Hassan',
-                'Car Owner - Selim',
-                'Driver - Babul',
-                'Car Owner - Noor',
-                'Driver - Shakib',
-              ];
-              final messages = [
-                'Thanks for the ride yesterday!',
-                'Are you available now?',
-                'Can you help me with car maintenance?',
-                'See you at 5 PM',
-                'Great service!',
-                'Need a driver urgently',
-                'Thanks for quick response',
-                'Confirmed for tomorrow',
-              ];
-
-              return Card(
-                margin: const EdgeInsets.only(bottom: 8),
-                child: ListTile(
-                  leading: CircleAvatar(
-                    backgroundColor: Colors.blue[300 + (index * 100)],
-                    child: Text(
-                      chatPartners[index][0],
-                      style: const TextStyle(color: Colors.white),
-                    ),
-                  ),
-                  title: Text(chatPartners[index]),
-                  subtitle: Text(messages[index]),
-                  trailing: const Icon(Icons.arrow_forward),
-                  onTap: () => ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Opening chat with ${chatPartners[index]}'),
-                    ),
-                  ),
-                ),
-              );
-            },
-          ),
-        ],
-      ),
-    );
+    return ConversationsScreen(currentUser: widget.userData);
   }
 
   Widget _buildProfileTab() {

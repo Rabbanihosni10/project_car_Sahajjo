@@ -6,6 +6,7 @@ import 'screens/visitor_home_screen.dart';
 import 'screens/driver_home_screen.dart';
 import 'screens/owner_home_screen.dart';
 import 'screens/edit_profile_screen.dart';
+import 'screens/wallet_screen.dart';
 import 'screens/admin/admin_login_screen.dart';
 import 'screens/admin/admin_dashboard.dart';
 
@@ -59,6 +60,13 @@ class MyApp extends StatelessWidget {
         '/profile': (context) {
           // This will be handled by the home screens themselves
           return const Scaffold(body: Center(child: Text('Profile Screen')));
+        },
+        '/wallet': (context) {
+          final userData =
+              ModalRoute.of(context)?.settings.arguments
+                  as Map<String, dynamic>? ??
+              {};
+          return WalletScreen(userData: userData);
         },
         '/admin/login': (context) => const AdminLoginScreen(),
         '/admin/dashboard': (context) => const AdminDashboard(),
