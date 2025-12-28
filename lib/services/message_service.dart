@@ -1,9 +1,11 @@
 import 'package:http/http.dart' as http;
 import 'package:cars_ahajjo/services/auth_services.dart';
+import 'package:cars_ahajjo/services/socket_service.dart';
 import 'dart:convert';
 
 class MessageService {
   static const String _baseUrl = 'http://localhost:5003/api';
+  static final SocketService _socketService = SocketService();
 
   /// Get all conversations
   static Future<List<dynamic>> getConversations() async {
@@ -160,5 +162,61 @@ class MessageService {
       print('Error: $e');
       return 0;
     }
+  }
+
+  /// Initialize Socket.io for real-time messaging
+  static void initializeSocket() {
+    _socketService.initialize();
+    _socketService.connect();
+  }
+
+  /// Send a message in real-time via Socket.io
+  static void sendChatMessageRealtime(
+    String senderId,
+    String receiverId,
+    String message,
+    String conversationId,
+  ) {
+    _socketService.sendChatMessage(
+      senderId,
+      receiverId,
+      message,
+      conversationId,
+    );
+  }
+
+  /// Listen for incoming messages in real-time
+  static void onMessageReceived(Function(Map<String, dynamic>) callback) {
+    _socketService.on('message_received', callback);
+  }
+
+  /// Join a conversation for real-time updates
+  static void joinConversation(String conversationId) {
+    _socketService.joinConversation(conversationId);
+  }
+
+  /// Leave a conversation
+  static void leaveConversation(String conversationId) {
+    _socketService.leaveConversation(conversationId);
+  }
+
+  /// Notify others that you're typing
+  static void notifyTyping(String conversationId, String userId) {
+    _socketService.notifyTyping(conversationId, userId);
+  }
+
+  /// Notify others that you stopped typing
+  static void notifyStopTyping(String conversationId, String userId) {
+    _socketService.notifyStopTyping(conversationId, userId);
+  }
+
+  /// Listen for typing indicators
+  static void onUserTyping(Function(Map<String, dynamic>) callback) {
+    _socketService.on('user_typing', callback);
+  }
+
+  /// Disconnect socket when done
+  static void disconnectSocket() {
+    _socketService.disconnect();
   }
 }

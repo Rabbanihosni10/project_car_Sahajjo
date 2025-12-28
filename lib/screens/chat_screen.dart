@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:cars_ahajjo/services/message_service.dart';
+import 'package:cars_ahajjo/services/auth_services.dart';
 import 'package:intl/intl.dart';
 
 class ChatScreen extends StatefulWidget {
@@ -17,11 +18,52 @@ class _ChatScreenState extends State<ChatScreen> {
   List<dynamic> messages = [];
   bool _isLoading = true;
   bool _isSending = false;
+  String? _conversationId;
+  String? _currentUserId;
+  Set<String> _typingUsers = {};
 
   @override
   void initState() {
     super.initState();
     _loadChatHistory();
+    _initializeSocket();
+  }
+
+  /// Initialize Socket.io for real-time messaging
+  void _initializeSocket() async {
+    _currentUserId = await AuthService.getUserId();
+    _conversationId = widget.otherUser['_id'];
+
+    MessageService.initializeSocket();
+    if (_conversationId != null) {
+      MessageService.joinConversation(_conversationId!);
+    }
+
+    // Listen for incoming messages
+    MessageService.onMessageReceived((data) {
+      print('Message received: $data');
+      if (mounted) {
+        setState(() {
+          messages.insert(0, data);
+        });
+      }
+    });
+
+    // Listen for typing indicators
+    MessageService.onUserTyping((data) {
+      final userId = data['userId'];
+      final isTyping = data['isTyping'] ?? false;
+
+      if (mounted) {
+        setState(() {
+          if (isTyping) {
+            _typingUsers.add(userId);
+          } else {
+            _typingUsers.remove(userId);
+          }
+        });
+      }
+    });
   }
 
   Future<void> _loadChatHistory() async {
@@ -51,12 +93,27 @@ class _ChatScreenState extends State<ChatScreen> {
 
     setState(() => _isSending = true);
 
+    // Stop typing indicator
+    if (_conversationId != null && _currentUserId != null) {
+      MessageService.notifyStopTyping(_conversationId!, _currentUserId!);
+    }
+
     final success = await MessageService.sendMessage(
       widget.otherUser['_id'],
       messageText,
     );
 
     if (success) {
+      // Send via Socket.io for real-time delivery
+      if (_conversationId != null && _currentUserId != null) {
+        MessageService.sendChatMessageRealtime(
+          _currentUserId!,
+          _conversationId!,
+          messageText,
+          _conversationId!,
+        );
+      }
+
       // Reload chat history
       await _loadChatHistory();
     } else {
@@ -133,6 +190,20 @@ class _ChatScreenState extends State<ChatScreen> {
                     },
                   ),
           ),
+          // Typing indicator
+          if (_typingUsers.isNotEmpty)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              color: Colors.grey[100],
+              child: Text(
+                '${_typingUsers.length} user${_typingUsers.length > 1 ? 's' : ''} typing...',
+                style: TextStyle(
+                  color: Colors.grey[600],
+                  fontSize: 12,
+                  fontStyle: FontStyle.italic,
+                ),
+              ),
+            ),
           // Message input area
           Container(
             padding: const EdgeInsets.all(12),
@@ -147,6 +218,24 @@ class _ChatScreenState extends State<ChatScreen> {
                 Expanded(
                   child: TextField(
                     controller: _messageController,
+                    onChanged: (value) {
+                      // Notify others that user is typing
+                      if (value.isNotEmpty &&
+                          _conversationId != null &&
+                          _currentUserId != null) {
+                        MessageService.notifyTyping(
+                          _conversationId!,
+                          _currentUserId!,
+                        );
+                      } else if (value.isEmpty &&
+                          _conversationId != null &&
+                          _currentUserId != null) {
+                        MessageService.notifyStopTyping(
+                          _conversationId!,
+                          _currentUserId!,
+                        );
+                      }
+                    },
                     decoration: InputDecoration(
                       hintText: 'Type your message...',
                       border: OutlineInputBorder(
@@ -270,6 +359,10 @@ class _ChatScreenState extends State<ChatScreen> {
   @override
   void dispose() {
     _messageController.dispose();
+    if (_conversationId != null) {
+      MessageService.leaveConversation(_conversationId!);
+    }
+    MessageService.disconnectSocket();
     super.dispose();
   }
 }

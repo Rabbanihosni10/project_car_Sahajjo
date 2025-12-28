@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:cars_ahajjo/services/location_service.dart';
+import 'package:cars_ahajjo/services/auth_services.dart';
 
 class DriverLiveLocationScreen extends StatefulWidget {
   const DriverLiveLocationScreen({super.key});
@@ -18,11 +19,42 @@ class _DriverLiveLocationScreenState extends State<DriverLiveLocationScreen> {
 
   final Set<Marker> markers = {};
   LatLng? _initialPosition;
+  String? _driverId;
 
   @override
   void initState() {
     super.initState();
     _initializeLocation();
+    _initializeSocket();
+  }
+
+  /// Initialize Socket.io for real-time location broadcasting
+  void _initializeSocket() async {
+    _driverId = await AuthService.getUserId();
+    LocationService.initializeSocket();
+
+    // Listen for other drivers' location updates
+    LocationService.onDriverLocationChanged((data) {
+      print('Driver location changed: $data');
+      final driverId = data['driverId'];
+      final latitude = data['latitude'];
+      final longitude = data['longitude'];
+
+      if (driverId != _driverId) {
+        setState(() {
+          markers.add(
+            Marker(
+              markerId: MarkerId('driver_$driverId'),
+              position: LatLng(latitude, longitude),
+              infoWindow: InfoWindow(title: 'Driver $driverId'),
+              icon: BitmapDescriptor.defaultMarkerWithHue(
+                BitmapDescriptor.hueOrange,
+              ),
+            ),
+          );
+        });
+      }
+    });
   }
 
   Future<void> _initializeLocation() async {
@@ -97,9 +129,14 @@ class _DriverLiveLocationScreenState extends State<DriverLiveLocationScreen> {
     );
 
     if (success) {
+      // Also update driver status to online
+      if (_driverId != null) {
+        LocationService.setDriverStatus(_driverId!, 'online');
+      }
+
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Location shared with customers'),
+          content: Text('Location shared with customers in real-time'),
           backgroundColor: Colors.green,
         ),
       );
@@ -281,6 +318,7 @@ class _DriverLiveLocationScreenState extends State<DriverLiveLocationScreen> {
   @override
   void dispose() {
     mapController.dispose();
+    LocationService.disconnectSocket();
     super.dispose();
   }
 }

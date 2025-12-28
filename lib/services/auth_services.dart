@@ -34,6 +34,11 @@ class AuthService {
     return null;
   }
 
+  static Future<String?> getUserId() async {
+    final userData = await getUserData();
+    return userData?['_id'] as String?;
+  }
+
   static Future<String?> getUserRole() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString(_userRoleKey);
