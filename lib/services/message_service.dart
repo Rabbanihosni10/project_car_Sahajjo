@@ -9,6 +9,36 @@ class MessageService {
 
   static String get _baseUrl => '${AppConstants.baseUrl}/messages';
 
+  /// Get or create a conversation with a user
+  static Future<Map<String, dynamic>?> getOrCreateConversation(
+    String otherUserId,
+  ) async {
+    try {
+      final token = await AuthService.getToken();
+      if (token == null) return null;
+
+      final response = await http.post(
+        Uri.parse('$_baseUrl/conversations/get-or-create'),
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer $token',
+        },
+        body: jsonEncode({'otherUserId': otherUserId}),
+      );
+
+      if (response.statusCode == 200 || response.statusCode == 201) {
+        final data = jsonDecode(response.body);
+        return data['data'] ?? data;
+      } else {
+        print('Error getting/creating conversation: ${response.body}');
+        return null;
+      }
+    } catch (e) {
+      print('Error: $e');
+      return null;
+    }
+  }
+
   /// Get all conversations
   static Future<List<dynamic>> getConversations() async {
     try {

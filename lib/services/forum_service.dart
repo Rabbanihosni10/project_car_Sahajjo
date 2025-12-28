@@ -21,6 +21,11 @@ class ForumService {
   }) async {
     try {
       final token = await _getToken();
+      if (token == null) {
+        print('No token found');
+        return null;
+      }
+
       final response = await http.post(
         Uri.parse('$baseUrl/posts'),
         headers: {
@@ -35,9 +40,18 @@ class ForumService {
         }),
       );
 
+      print('Forum POST response status: ${response.statusCode}');
+      print('Forum POST response body: ${response.body}');
+
       if (response.statusCode == 201) {
         final data = jsonDecode(response.body);
         return ForumPost.fromJson(data['data']);
+      } else if (response.statusCode == 401) {
+        print('Unauthorized: Token may be invalid');
+        return null;
+      } else if (response.statusCode == 500) {
+        print('Server error: ${response.body}');
+        return null;
       }
       return null;
     } catch (e) {

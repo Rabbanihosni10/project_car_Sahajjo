@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'dart:async';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:cars_ahajjo/services/location_service.dart';
 import 'package:cars_ahajjo/services/auth_services.dart';
@@ -13,11 +15,12 @@ class DriverLiveLocationScreen extends StatefulWidget {
 }
 
 class _DriverLiveLocationScreenState extends State<DriverLiveLocationScreen> {
-  late GoogleMapController mapController;
+  final MapController _mapController = MapController();
   Position? _currentPosition;
   bool _isSharing = false;
+  StreamSubscription<Position>? _positionSub;
 
-  final Set<Marker> markers = {};
+  final List<Marker> _markers = [];
   LatLng? _initialPosition;
   String? _driverId;
 
@@ -42,13 +45,15 @@ class _DriverLiveLocationScreenState extends State<DriverLiveLocationScreen> {
 
       if (driverId != _driverId) {
         setState(() {
-          markers.add(
+          _markers.add(
             Marker(
-              markerId: MarkerId('driver_$driverId'),
-              position: LatLng(latitude, longitude),
-              infoWindow: InfoWindow(title: 'Driver $driverId'),
-              icon: BitmapDescriptor.defaultMarkerWithHue(
-                BitmapDescriptor.hueOrange,
+              point: LatLng(latitude, longitude),
+              width: 40,
+              height: 40,
+              child: const Icon(
+                Icons.local_taxi,
+                color: Colors.orange,
+                size: 32,
               ),
             ),
           );
@@ -91,14 +96,12 @@ class _DriverLiveLocationScreenState extends State<DriverLiveLocationScreen> {
       setState(() {
         _currentPosition = position;
         _initialPosition = LatLng(position.latitude, position.longitude);
-        markers.add(
+        _markers.add(
           Marker(
-            markerId: const MarkerId('current_location'),
-            position: _initialPosition!,
-            infoWindow: const InfoWindow(title: 'Your Current Location'),
-            icon: BitmapDescriptor.defaultMarkerWithHue(
-              BitmapDescriptor.hueBlue,
-            ),
+            point: _initialPosition!,
+            width: 40,
+            height: 40,
+            child: const Icon(Icons.my_location, color: Colors.blue, size: 28),
           ),
         );
       });
@@ -129,14 +132,43 @@ class _DriverLiveLocationScreenState extends State<DriverLiveLocationScreen> {
     );
 
     if (success) {
-      // Also update driver status to online
       if (_driverId != null) {
         LocationService.setDriverStatus(_driverId!, 'online');
       }
 
+      // Start streaming continuous updates
+      _positionSub?.cancel();
+      _positionSub =
+          Geolocator.getPositionStream(
+            locationSettings: const LocationSettings(
+              accuracy: LocationAccuracy.high,
+              distanceFilter: 5,
+            ),
+          ).listen((pos) async {
+            _currentPosition = pos;
+            _initialPosition = LatLng(pos.latitude, pos.longitude);
+            _markers
+              ..clear()
+              ..add(
+                Marker(
+                  point: _initialPosition!,
+                  width: 40,
+                  height: 40,
+                  child: const Icon(
+                    Icons.my_location,
+                    color: Colors.blue,
+                    size: 28,
+                  ),
+                ),
+              );
+            _mapController.move(_initialPosition!, 15);
+            await LocationService.updateLocation(pos.latitude, pos.longitude);
+            if (mounted) setState(() {});
+          });
+
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('Location shared with customers in real-time'),
+          content: Text('Live location sharing started'),
           backgroundColor: Colors.green,
         ),
       );
@@ -147,9 +179,8 @@ class _DriverLiveLocationScreenState extends State<DriverLiveLocationScreen> {
           backgroundColor: Colors.red,
         ),
       );
+      setState(() => _isSharing = false);
     }
-
-    setState(() => _isSharing = false);
   }
 
   Future<void> _updateLocation() async {
@@ -161,20 +192,18 @@ class _DriverLiveLocationScreenState extends State<DriverLiveLocationScreen> {
       setState(() {
         _currentPosition = position;
         _initialPosition = LatLng(position.latitude, position.longitude);
-        markers.clear();
-        markers.add(
+        _markers.clear();
+        _markers.add(
           Marker(
-            markerId: const MarkerId('current_location'),
-            position: _initialPosition!,
-            infoWindow: const InfoWindow(title: 'Your Current Location'),
-            icon: BitmapDescriptor.defaultMarkerWithHue(
-              BitmapDescriptor.hueBlue,
-            ),
+            point: _initialPosition!,
+            width: 40,
+            height: 40,
+            child: const Icon(Icons.my_location, color: Colors.blue, size: 28),
           ),
         );
       });
 
-      mapController.animateCamera(CameraUpdate.newLatLng(_initialPosition!));
+      _mapController.move(_initialPosition!, 15);
 
       // Auto-share location every 5 seconds
       if (_isSharing) {
@@ -185,13 +214,6 @@ class _DriverLiveLocationScreenState extends State<DriverLiveLocationScreen> {
       }
     } catch (e) {
       print('Error updating location: $e');
-    }
-  }
-
-  void _onMapCreated(GoogleMapController controller) {
-    mapController = controller;
-    if (_initialPosition != null) {
-      mapController.animateCamera(CameraUpdate.newLatLng(_initialPosition!));
     }
   }
 
@@ -208,16 +230,21 @@ class _DriverLiveLocationScreenState extends State<DriverLiveLocationScreen> {
           Expanded(
             child: _initialPosition == null
                 ? const Center(child: CircularProgressIndicator())
-                : GoogleMap(
-                    onMapCreated: _onMapCreated,
-                    initialCameraPosition: CameraPosition(
-                      target: _initialPosition!,
-                      zoom: 15,
+                : FlutterMap(
+                    mapController: _mapController,
+                    options: MapOptions(
+                      initialCenter: _initialPosition!,
+                      initialZoom: 15,
                     ),
-                    markers: markers,
-                    myLocationEnabled: true,
-                    myLocationButtonEnabled: true,
-                    zoomControlsEnabled: true,
+                    children: [
+                      TileLayer(
+                        urlTemplate:
+                            'https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png',
+                        subdomains: const ['a', 'b', 'c'],
+                        userAgentPackageName: 'com.cars.ahajjo',
+                      ),
+                      MarkerLayer(markers: _markers),
+                    ],
                   ),
           ),
           Container(
@@ -317,7 +344,10 @@ class _DriverLiveLocationScreenState extends State<DriverLiveLocationScreen> {
 
   @override
   void dispose() {
-    mapController.dispose();
+    _positionSub?.cancel();
+    if (_driverId != null) {
+      LocationService.setDriverStatus(_driverId!, 'offline');
+    }
     LocationService.disconnectSocket();
     super.dispose();
   }

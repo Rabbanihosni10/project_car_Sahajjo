@@ -4,20 +4,20 @@ import 'package:latlong2/latlong.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:cars_ahajjo/services/garage_service.dart';
 
-class GarageMapScreen extends StatefulWidget {
+class OwnerGarageMapScreen extends StatefulWidget {
   final Map<String, dynamic>? userData;
 
-  const GarageMapScreen({super.key, this.userData});
+  const OwnerGarageMapScreen({super.key, this.userData});
 
   @override
-  State<GarageMapScreen> createState() => _GarageMapScreenState();
+  State<OwnerGarageMapScreen> createState() => _OwnerGarageMapScreenState();
 }
 
-class _GarageMapScreenState extends State<GarageMapScreen> {
+class _OwnerGarageMapScreenState extends State<OwnerGarageMapScreen> {
   final MapController _mapController = MapController();
   Position? _currentPosition;
   final List<Marker> _markers = [];
-  List<dynamic> garages = [];
+  List<dynamic> ownerGarages = [];
   bool _isLoading = true;
   LatLng? _initialPosition;
 
@@ -60,8 +60,8 @@ class _GarageMapScreenState extends State<GarageMapScreen> {
       // Add current location marker
       _addCurrentLocationMarker();
 
-      // Fetch nearby garages
-      await _fetchNearbyGarages();
+      // Fetch owner garages
+      await _fetchOwnerGarages();
     } catch (e) {
       print('Error initializing location: $e');
       ScaffoldMessenger.of(context).showSnackBar(
@@ -70,18 +70,19 @@ class _GarageMapScreenState extends State<GarageMapScreen> {
     }
   }
 
-  Future<void> _fetchNearbyGarages() async {
+  Future<void> _fetchOwnerGarages() async {
     if (_currentPosition == null) return;
 
     try {
-      final nearby = await GarageService.getNearbyGarages(
+      // Fetch all garages and filter by owner ID (or fetch owner-specific endpoint)
+      final allGarages = await GarageService.getNearbyGarages(
         latitude: _currentPosition!.latitude,
         longitude: _currentPosition!.longitude,
-        radiusInKm: 10,
+        radiusInKm: 50, // Wider radius to fetch all owner garages
       );
 
       setState(() {
-        garages = nearby;
+        ownerGarages = allGarages;
         _isLoading = false;
       });
 
@@ -105,8 +106,8 @@ class _GarageMapScreenState extends State<GarageMapScreen> {
   }
 
   void _addGarageMarkers() {
-    for (int i = 0; i < garages.length; i++) {
-      final garage = garages[i];
+    for (int i = 0; i < ownerGarages.length; i++) {
+      final garage = ownerGarages[i];
       final location = garage['location'];
       if (location != null && location['coordinates'] != null) {
         final coordinates = location['coordinates'];
@@ -117,11 +118,7 @@ class _GarageMapScreenState extends State<GarageMapScreen> {
             point: position,
             width: 40,
             height: 40,
-            child: const Icon(
-              Icons.location_on,
-              color: Colors.orange,
-              size: 32,
-            ),
+            child: const Icon(Icons.location_on, color: Colors.red, size: 32),
           ),
         );
       }
@@ -133,7 +130,7 @@ class _GarageMapScreenState extends State<GarageMapScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Nearby Garages'),
+        title: const Text('My Garages'),
         elevation: 0,
         backgroundColor: Colors.blue[600],
       ),
@@ -148,7 +145,7 @@ class _GarageMapScreenState extends State<GarageMapScreen> {
                           mapController: _mapController,
                           options: MapOptions(
                             initialCenter: _initialPosition!,
-                            initialZoom: 14,
+                            initialZoom: 12,
                           ),
                           children: [
                             TileLayer(
@@ -161,16 +158,16 @@ class _GarageMapScreenState extends State<GarageMapScreen> {
                           ],
                         ),
                 ),
-                if (garages.isNotEmpty)
+                if (ownerGarages.isNotEmpty)
                   Container(
                     height: 120,
                     color: Colors.white,
                     child: ListView.builder(
                       scrollDirection: Axis.horizontal,
                       padding: const EdgeInsets.all(8),
-                      itemCount: garages.length,
+                      itemCount: ownerGarages.length,
                       itemBuilder: (context, index) {
-                        final garage = garages[index];
+                        final garage = ownerGarages[index];
                         return _buildGarageCard(garage);
                       },
                     ),
@@ -179,7 +176,7 @@ class _GarageMapScreenState extends State<GarageMapScreen> {
                   Padding(
                     padding: const EdgeInsets.all(16),
                     child: Text(
-                      'No garages found nearby',
+                      'No garages found',
                       style: TextStyle(color: Colors.grey[600], fontSize: 14),
                     ),
                   ),
@@ -222,17 +219,17 @@ class _GarageMapScreenState extends State<GarageMapScreen> {
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(
                     content: Text(
-                      '${garage['name']} - Call feature coming soon',
+                      '${garage['name']} - Edit feature coming soon',
                     ),
                   ),
                 );
               },
               style: ElevatedButton.styleFrom(
                 padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                backgroundColor: Colors.blue[600],
+                backgroundColor: Colors.red[600],
               ),
               child: const Text(
-                'Contact',
+                'Details',
                 style: TextStyle(fontSize: 12, color: Colors.white),
               ),
             ),

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import '../services/auth_services.dart';
+import '../services/driver_service.dart';
+import '../services/message_service.dart';
 import './conversations_screen.dart';
 
 class OwnerHomeScreen extends StatefulWidget {
@@ -12,6 +14,13 @@ class OwnerHomeScreen extends StatefulWidget {
 
 class _OwnerHomeScreenState extends State<OwnerHomeScreen> {
   int _selectedIndex = 0;
+  late Future<List<dynamic>> _driversFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _driversFuture = DriverService.getOwnerDrivers();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -203,11 +212,13 @@ class _OwnerHomeScreenState extends State<OwnerHomeScreen> {
                 ),
               ),
               _buildFeatureCard(
-                'Driver Tracking',
+                'My Garages',
                 Icons.location_on,
                 Colors.red[400]!,
-                onTap: () => ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Tracking drivers...')),
+                onTap: () => Navigator.pushNamed(
+                  context,
+                  '/owner/garages',
+                  arguments: widget.userData,
                 ),
               ),
               _buildFeatureCard(
@@ -221,12 +232,14 @@ class _OwnerHomeScreenState extends State<OwnerHomeScreen> {
                 ),
               ),
               _buildFeatureCard(
-                'Garage Info',
-                Icons.location_on,
+                'Community Forum',
+                Icons.forum,
                 Colors.orange[400]!,
-                onTap: () => ScaffoldMessenger.of(
+                onTap: () => Navigator.pushNamed(
                   context,
-                ).showSnackBar(const SnackBar(content: Text('Nearby garages'))),
+                  '/forum',
+                  arguments: widget.userData,
+                ),
               ),
             ],
           ),
@@ -404,151 +417,346 @@ class _OwnerHomeScreenState extends State<OwnerHomeScreen> {
   }
 
   Widget _buildDriversTab() {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          const Text(
-            'Your Drivers 👥',
-            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
-          ),
-          const SizedBox(height: 16),
-          ListView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            itemCount: 8,
-            itemBuilder: (context, index) {
-              final driverNames = [
-                'Ahmed Hassan',
-                'Karim Khan',
-                'Hassan Ali',
-                'Shakib Islam',
-                'Babul Kumar',
-                'Noor Hossain',
-                'Selim Ahmed',
-                'Farhan Khan',
-              ];
-              final statuses = ['On Duty', 'Off Duty', 'On Break', 'On Duty'];
+    return FutureBuilder<List<dynamic>>(
+      future: _driversFuture,
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Center(child: CircularProgressIndicator());
+        }
 
-              return Card(
-                elevation: 2,
-                margin: const EdgeInsets.only(bottom: 12),
-                child: Padding(
-                  padding: const EdgeInsets.all(12.0),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        if (snapshot.hasError) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.error_outline, color: Colors.red[400], size: 64),
+                const SizedBox(height: 16),
+                const Text('Error loading drivers'),
+                const SizedBox(height: 24),
+                ElevatedButton(
+                  onPressed: () {
+                    setState(() {
+                      _driversFuture = DriverService.getOwnerDrivers();
+                    });
+                  },
+                  child: const Text('Retry'),
+                ),
+              ],
+            ),
+          );
+        }
+
+        final drivers = snapshot.data ?? [];
+
+        if (drivers.isEmpty) {
+          return Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.people_outline, color: Colors.grey[400], size: 64),
+                const SizedBox(height: 16),
+                Text(
+                  'No drivers assigned yet',
+                  style: TextStyle(color: Colors.grey[600], fontSize: 16),
+                ),
+              ],
+            ),
+          );
+        }
+
+        return SingleChildScrollView(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const Text(
+                'Your Drivers 👥',
+                style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 16),
+              ListView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: drivers.length,
+                itemBuilder: (context, index) {
+                  final driver = drivers[index];
+                  final name =
+                      driver['name'] ?? driver['firstName'] ?? 'Unknown Driver';
+                  final driverId = driver['_id'] ?? driver['id'] ?? '';
+                  final licenseNumber = driver['licenseNumber'] ?? 'N/A';
+                  final status = driver['status'] ?? 'offline';
+                  final rating = driver['rating'] ?? 4.5;
+                  final totalRides = driver['totalRides'] ?? 0;
+                  final earnings = driver['totalEarnings'] ?? 0;
+                  final phone = driver['phone'] ?? 'N/A';
+
+                  return Card(
+                    elevation: 2,
+                    margin: const EdgeInsets.only(bottom: 12),
+                    child: Padding(
+                      padding: const EdgeInsets.all(12.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
-                              CircleAvatar(
-                                backgroundColor:
-                                    Colors.blue[300 + (index * 100)],
+                              Row(
+                                children: [
+                                  CircleAvatar(
+                                    backgroundColor:
+                                        Colors.blue[300 +
+                                            ((index * 100) % 400).toInt()],
+                                    child: Text(
+                                      name[0].toUpperCase(),
+                                      style: const TextStyle(
+                                        color: Colors.white,
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 12),
+                                  Column(
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.start,
+                                    children: [
+                                      Text(
+                                        name,
+                                        style: const TextStyle(
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 15,
+                                        ),
+                                      ),
+                                      Text(
+                                        'License: $licenseNumber',
+                                        style: TextStyle(
+                                          fontSize: 11,
+                                          color: Colors.grey[600],
+                                        ),
+                                      ),
+                                      Text(
+                                        'Phone: $phone',
+                                        style: TextStyle(
+                                          fontSize: 11,
+                                          color: Colors.grey[600],
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ],
+                              ),
+                              Container(
+                                padding: const EdgeInsets.symmetric(
+                                  horizontal: 8,
+                                  vertical: 4,
+                                ),
+                                decoration: BoxDecoration(
+                                  color: status == 'online'
+                                      ? Colors.green[100]
+                                      : Colors.orange[100],
+                                  borderRadius: BorderRadius.circular(4),
+                                ),
                                 child: Text(
-                                  driverNames[index][0],
-                                  style: const TextStyle(color: Colors.white),
+                                  status == 'online' ? 'Online' : 'Offline',
+                                  style: TextStyle(
+                                    color: status == 'online'
+                                        ? Colors.green
+                                        : Colors.orange,
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                               ),
-                              const SizedBox(width: 12),
+                            ],
+                          ),
+                          const SizedBox(height: 8),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: [
                               Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
                                   Text(
-                                    driverNames[index],
+                                    '⭐ $rating',
                                     style: const TextStyle(
                                       fontWeight: FontWeight.bold,
                                     ),
                                   ),
+                                  const Text(
+                                    'Rating',
+                                    style: TextStyle(fontSize: 10),
+                                  ),
+                                ],
+                              ),
+                              Column(
+                                children: [
                                   Text(
-                                    'License: DL-${1001 + index}',
-                                    style: TextStyle(
-                                      fontSize: 11,
-                                      color: Colors.grey[600],
+                                    '$totalRides',
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
                                     ),
+                                  ),
+                                  const Text(
+                                    'Rides',
+                                    style: TextStyle(fontSize: 10),
+                                  ),
+                                ],
+                              ),
+                              Column(
+                                children: [
+                                  Text(
+                                    'TK $earnings',
+                                    style: const TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                  const Text(
+                                    'Earnings',
+                                    style: TextStyle(fontSize: 10),
                                   ),
                                 ],
                               ),
                             ],
                           ),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 4,
-                            ),
-                            decoration: BoxDecoration(
-                              color: statuses[index % 4] == 'On Duty'
-                                  ? Colors.green[100]
-                                  : Colors.orange[100],
-                              borderRadius: BorderRadius.circular(4),
-                            ),
-                            child: Text(
-                              statuses[index % 4],
-                              style: TextStyle(
-                                color: statuses[index % 4] == 'On Duty'
-                                    ? Colors.green
-                                    : Colors.orange,
-                                fontSize: 10,
-                                fontWeight: FontWeight.bold,
+                          const SizedBox(height: 12),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                            children: [
+                              Expanded(
+                                child: ElevatedButton.icon(
+                                  icon: const Icon(Icons.location_on, size: 16),
+                                  label: const Text('Track'),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.blue[600],
+                                    foregroundColor: Colors.white,
+                                  ),
+                                  onPressed: () {
+                                    ScaffoldMessenger.of(context).showSnackBar(
+                                      SnackBar(
+                                        content: Text(
+                                          'Tracking $name... (GPS integration coming)',
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                ),
                               ),
-                            ),
-                          ),
-                        ],
-                      ),
-                      const SizedBox(height: 12),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                        children: [
-                          Text('Rides: ${120 + (index * 15)}'),
-                          Text('Earnings: TK ${(index + 1) * 5000}'),
-                        ],
-                      ),
-                      const SizedBox(height: 8),
-                      Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: [
-                          Expanded(
-                            child: OutlinedButton.icon(
-                              icon: const Icon(Icons.location_on, size: 16),
-                              label: const Text('Track'),
-                              onPressed: () =>
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(
-                                        'Tracking ${driverNames[index]}...',
-                                      ),
-                                    ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: ElevatedButton.icon(
+                                  icon: const Icon(Icons.info, size: 16),
+                                  label: const Text('Details'),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.orange[600],
+                                    foregroundColor: Colors.white,
                                   ),
-                            ),
-                          ),
-                          const SizedBox(width: 8),
-                          Expanded(
-                            child: OutlinedButton.icon(
-                              icon: const Icon(Icons.info, size: 16),
-                              label: const Text('Details'),
-                              onPressed: () =>
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    SnackBar(
-                                      content: Text(
-                                        '${driverNames[index]} details',
-                                      ),
-                                    ),
+                                  onPressed: () {
+                                    _showDriverDetails(context, driver);
+                                  },
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: ElevatedButton.icon(
+                                  icon: const Icon(Icons.chat, size: 16),
+                                  label: const Text('Chat'),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: Colors.green[600],
+                                    foregroundColor: Colors.white,
                                   ),
-                            ),
+                                  onPressed: () {
+                                    _startChat(context, driverId, name);
+                                  },
+                                ),
+                              ),
+                            ],
                           ),
                         ],
                       ),
-                    ],
-                  ),
-                ),
-              );
-            },
+                    ),
+                  );
+                },
+              ),
+            ],
+          ),
+        );
+      },
+    );
+  }
+
+  void _showDriverDetails(BuildContext context, Map<String, dynamic> driver) {
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: Text(driver['name'] ?? 'Driver Details'),
+        content: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              _buildDetailTile('License', driver['licenseNumber'] ?? 'N/A'),
+              _buildDetailTile('Phone', driver['phone'] ?? 'N/A'),
+              _buildDetailTile('Email', driver['email'] ?? 'N/A'),
+              _buildDetailTile('Vehicle', driver['vehicleNumber'] ?? 'N/A'),
+              _buildDetailTile('Status', driver['status'] ?? 'N/A'),
+              _buildDetailTile('Rating', '⭐ ${driver['rating'] ?? 'N/A'}'),
+              _buildDetailTile('Total Rides', '${driver['totalRides'] ?? 0}'),
+              _buildDetailTile(
+                'Total Earnings',
+                'TK ${driver['totalEarnings'] ?? 0}',
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: const Text('Close'),
           ),
         ],
       ),
     );
+  }
+
+  Widget _buildDetailTile(String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          Text(label, style: const TextStyle(fontWeight: FontWeight.bold)),
+          Flexible(
+            child: Text(
+              value,
+              textAlign: TextAlign.end,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _startChat(BuildContext context, String driverId, String driverName) {
+    // Navigate to messages/chat with this driver
+    MessageService.getOrCreateConversation(driverId).then((conversation) {
+      if (conversation != null) {
+        Navigator.pushNamed(
+          context,
+          '/messages',
+          arguments: {
+            'conversationId': conversation['_id'] ?? conversation['id'],
+            'otherUserId': driverId,
+            'otherUserName': driverName,
+            'otherUserRole': 'driver',
+          },
+        );
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Failed to open chat. Please try again.'),
+          ),
+        );
+      }
+    });
   }
 
   Widget _buildChatTab() {

@@ -228,12 +228,14 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
                 ),
               ),
               _buildFeatureCard(
-                'To-Do List',
-                Icons.checklist,
+                'Community Forum',
+                Icons.forum,
                 Colors.green[400]!,
-                onTap: () => ScaffoldMessenger.of(
+                onTap: () => Navigator.pushNamed(
                   context,
-                ).showSnackBar(const SnackBar(content: Text('To-Do List'))),
+                  '/forum',
+                  arguments: widget.userData,
+                ),
               ),
             ],
           ),

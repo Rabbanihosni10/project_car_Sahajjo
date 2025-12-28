@@ -12,6 +12,7 @@ import 'screens/forum_screen.dart';
 import 'screens/driver_details_screen.dart';
 import 'screens/messages_screen.dart';
 import 'screens/garage_map_screen.dart';
+import 'screens/owner_garage_map_screen.dart';
 import 'screens/ai_chat_screen.dart';
 import 'screens/car_info_screen.dart';
 import 'screens/admin/admin_login_screen.dart';
@@ -123,6 +124,13 @@ class MyApp extends StatelessWidget {
                   as Map<String, dynamic>? ??
               {};
           return CarInfoScreen(userData: userData);
+        },
+        '/owner/garages': (context) {
+          final userData =
+              ModalRoute.of(context)?.settings.arguments
+                  as Map<String, dynamic>? ??
+              {};
+          return OwnerGarageMapScreen(userData: userData);
         },
       },
     );
