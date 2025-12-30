@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:cars_ahajjo/services/forum_service.dart';
 import 'package:cars_ahajjo/models/forum_post.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
+import 'dart:convert';
 
 class ForumScreen extends StatefulWidget {
   final Map<String, dynamic> userData;
@@ -17,6 +21,15 @@ class _ForumScreenState extends State<ForumScreen> {
   bool _isLoading = false;
   late Future<List<ForumPost>> _forumPostsFuture;
   String _selectedCategory = 'General';
+  List<ForumPost> _posts = [];
+  bool _shownPostHint = false;
+  List<File> _selectedImages = [];
+  final ImagePicker _imagePicker = ImagePicker();
+
+  bool get _canPost {
+    final role = widget.userData['role'] as String?;
+    return role == 'driver' || role == 'owner' || role == 'carOwner';
+  }
 
   final List<String> _categories = [
     'General',
@@ -30,10 +43,56 @@ class _ForumScreenState extends State<ForumScreen> {
   void initState() {
     super.initState();
     _loadPosts();
+    // Show one-time hint if user arrived from sign-in intent
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final showHint = widget.userData['showPostHint'] == true;
+      if (showHint && _canPost && !_shownPostHint) {
+        _checkAndShowPostHint();
+      }
+    });
+  }
+
+  Future<void> _checkAndShowPostHint() async {
+    final prefs = await SharedPreferences.getInstance();
+    final hidden = prefs.getBool('hideForumPostHint') ?? false;
+    if (hidden) return;
+    _shownPostHint = true;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: const Text('You can post now. Share your update!'),
+        duration: const Duration(seconds: 3),
+        action: SnackBarAction(
+          label: 'Don\'t show again',
+          onPressed: () async {
+            await prefs.setBool('hideForumPostHint', true);
+          },
+        ),
+      ),
+    );
   }
 
   void _loadPosts() {
-    _forumPostsFuture = ForumService.getPosts();
+    _forumPostsFuture = ForumService.getPosts(
+      category: _selectedCategory == 'General' ? null : _selectedCategory,
+    );
+
+    // Also load directly for real-time updates
+    _refreshPostsList();
+  }
+
+  Future<void> _refreshPostsList() async {
+    try {
+      final posts = await ForumService.getPosts(
+        category: _selectedCategory == 'General' ? null : _selectedCategory,
+      );
+      if (mounted) {
+        setState(() {
+          _posts = posts;
+        });
+      }
+    } catch (e) {
+      print('Error refreshing posts: $e');
+    }
   }
 
   @override
@@ -43,7 +102,49 @@ class _ForumScreenState extends State<ForumScreen> {
     super.dispose();
   }
 
+  Future<void> _pickImages() async {
+    try {
+      final pickedFiles = await _imagePicker.pickMultiImage(
+        maxWidth: 1200,
+        maxHeight: 1200,
+        imageQuality: 85,
+      );
+
+      if (pickedFiles.isNotEmpty) {
+        setState(() {
+          _selectedImages = pickedFiles
+              .map((xFile) => File(xFile.path))
+              .toList();
+        });
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(
+        context,
+      ).showSnackBar(SnackBar(content: Text('Error picking images: $e')));
+    }
+  }
+
+  void _removeImage(int index) {
+    setState(() {
+      _selectedImages.removeAt(index);
+    });
+  }
+
+  void _clearAllImages() {
+    setState(() {
+      _selectedImages.clear();
+    });
+  }
+
   Future<void> _createPost() async {
+    if (!_canPost) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Only drivers and owners can post to the forum.'),
+        ),
+      );
+      return;
+    }
     if (_titleController.text.isEmpty || _postController.text.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Please fill in all fields')),
@@ -53,26 +154,55 @@ class _ForumScreenState extends State<ForumScreen> {
 
     setState(() => _isLoading = true);
 
-    final result = await ForumService.createPost(
-      title: _titleController.text,
-      content: _postController.text,
-      category: _selectedCategory,
-    );
+    try {
+      final result = await ForumService.createPost(
+        title: _titleController.text,
+        content: _postController.text,
+        category: _selectedCategory,
+        tags: [],
+        images: _selectedImages,
+      );
 
-    if (mounted) {
-      setState(() => _isLoading = false);
+      if (mounted) {
+        setState(() => _isLoading = false);
 
-      if (result != null) {
-        _titleController.clear();
-        _postController.clear();
+        if (result != null) {
+          _titleController.clear();
+          _postController.clear();
+          _clearAllImages();
+
+          // Add the new post to the list immediately for real-time display
+          setState(() {
+            _posts.insert(0, result);
+          });
+
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Post created successfully!'),
+              duration: Duration(seconds: 2),
+            ),
+          );
+
+          // Refresh the list to sync with server
+          _loadPosts();
+        } else {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(
+              content: Text('Failed to create post'),
+              duration: Duration(seconds: 2),
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _isLoading = false);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Post created successfully!')),
+          SnackBar(
+            content: Text('Error: $e'),
+            duration: const Duration(seconds: 2),
+          ),
         );
-        _loadPosts();
-      } else {
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(const SnackBar(content: Text('Failed to create post')));
       }
     }
   }
@@ -88,73 +218,157 @@ class _ForumScreenState extends State<ForumScreen> {
           'Community Forum',
           style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
         ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.refresh),
+            onPressed: () {
+              _loadPosts();
+              ScaffoldMessenger.of(context).showSnackBar(
+                const SnackBar(
+                  content: Text('Refreshing posts...'),
+                  duration: Duration(seconds: 1),
+                ),
+              );
+            },
+          ),
+        ],
       ),
-      body: SingleChildScrollView(
-        child: Column(
-          children: [
-            // Create Post Section
-            _buildCreatePostWidget(),
-            const SizedBox(height: 12),
+      body: RefreshIndicator(
+        onRefresh: () async {
+          _loadPosts();
+        },
+        child: SingleChildScrollView(
+          physics: const AlwaysScrollableScrollPhysics(),
+          child: Column(
+            children: [
+              // Create Post Section
+              _buildCreatePostWidget(),
+              const SizedBox(height: 12),
 
-            // Forum Posts from API
-            FutureBuilder<List<ForumPost>>(
-              future: _forumPostsFuture,
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(
-                    child: Padding(
-                      padding: EdgeInsets.all(20),
-                      child: CircularProgressIndicator(),
-                    ),
-                  );
-                }
-
-                if (snapshot.hasError) {
-                  return Center(
-                    child: Padding(
-                      padding: const EdgeInsets.all(20),
-                      child: Text('Error loading posts: ${snapshot.error}'),
-                    ),
-                  );
-                }
-
-                final posts = snapshot.data ?? [];
-
-                if (posts.isEmpty) {
-                  return Center(
-                    child: Padding(
-                      padding: const EdgeInsets.all(20),
-                      child: Column(
-                        children: [
-                          Icon(Icons.forum, size: 80, color: Colors.grey[400]),
-                          const SizedBox(height: 10),
-                          Text(
-                            'No posts yet',
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: Colors.grey[600],
-                            ),
-                          ),
-                        ],
+              // Category Filter
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.symmetric(horizontal: 12),
+                child: Row(
+                  children: _categories.map((category) {
+                    final isSelected = _selectedCategory == category;
+                    return Padding(
+                      padding: const EdgeInsets.only(right: 8),
+                      child: FilterChip(
+                        label: Text(category),
+                        selected: isSelected,
+                        onSelected: (selected) {
+                          setState(() {
+                            _selectedCategory = category;
+                          });
+                          _loadPosts();
+                        },
+                        backgroundColor: Colors.white,
+                        selectedColor: const Color(0xFF2196F3),
+                        labelStyle: TextStyle(
+                          color: isSelected ? Colors.white : Colors.black,
+                          fontWeight: isSelected
+                              ? FontWeight.bold
+                              : FontWeight.normal,
+                        ),
                       ),
-                    ),
-                  );
-                }
+                    );
+                  }).toList(),
+                ),
+              ),
+              const SizedBox(height: 12),
 
-                return ListView.builder(
-                  shrinkWrap: true,
-                  physics: const NeverScrollableScrollPhysics(),
-                  itemCount: posts.length,
-                  itemBuilder: (context, index) {
-                    return _buildForumPost(posts[index]);
-                  },
-                );
-              },
-            ),
-            const SizedBox(height: 20),
-          ],
+              // Forum Posts - Display from local list first
+              _buildPostsList(),
+              const SizedBox(height: 20),
+            ],
+          ),
         ),
       ),
+    );
+  }
+
+  Widget _buildPostsList() {
+    if (_posts.isEmpty) {
+      return FutureBuilder<List<ForumPost>>(
+        future: _forumPostsFuture,
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(
+              child: Padding(
+                padding: EdgeInsets.all(20),
+                child: CircularProgressIndicator(),
+              ),
+            );
+          }
+
+          if (snapshot.hasError) {
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: Text('Error loading posts: ${snapshot.error}'),
+              ),
+            );
+          }
+
+          final posts = snapshot.data ?? [];
+
+          if (posts.isEmpty) {
+            return Center(
+              child: Padding(
+                padding: const EdgeInsets.all(20),
+                child: Column(
+                  children: [
+                    Icon(Icons.forum, size: 80, color: Colors.grey[400]),
+                    const SizedBox(height: 10),
+                    Text(
+                      'No posts yet. Be the first to post!',
+                      style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+                    ),
+                  ],
+                ),
+              ),
+            );
+          }
+
+          return ListView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: posts.length,
+            itemBuilder: (context, index) {
+              return _buildForumPost(posts[index]);
+            },
+          );
+        },
+      );
+    }
+
+    // Show local posts list
+    if (_posts.isEmpty) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(20),
+          child: Column(
+            children: [
+              Icon(Icons.forum, size: 80, color: Colors.grey[400]),
+              const SizedBox(height: 10),
+              Text(
+                'No posts yet. Be the first to post!',
+                style: TextStyle(fontSize: 16, color: Colors.grey[600]),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return ListView.builder(
+      shrinkWrap: true,
+      physics: const NeverScrollableScrollPhysics(),
+      itemCount: _posts.length,
+      itemBuilder: (context, index) {
+        return _buildForumPost(_posts[index]);
+      },
     );
   }
 
@@ -164,6 +378,42 @@ class _ForumScreenState extends State<ForumScreen> {
       padding: const EdgeInsets.all(16),
       child: Column(
         children: [
+          if (!_canPost)
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(12),
+              margin: const EdgeInsets.only(bottom: 12),
+              decoration: BoxDecoration(
+                color: const Color(0xFFFFF3E0),
+                borderRadius: BorderRadius.circular(8),
+                border: Border.all(color: const Color(0xFFFFCC80)),
+              ),
+              child: Row(
+                children: [
+                  const Icon(Icons.info_outline, color: Color(0xFFF57C00)),
+                  const SizedBox(width: 8),
+                  const Expanded(
+                    child: Text(
+                      'Only drivers and owners can create posts. Sign in with an eligible account to participate.',
+                      style: TextStyle(color: Color(0xFF6D4C41)),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  TextButton(
+                    onPressed: () {
+                      Navigator.of(context).pushNamed('/signin');
+                    },
+                    child: const Text(
+                      'Sign In',
+                      style: TextStyle(
+                        color: Color(0xFFF57C00),
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
           Row(
             children: [
               CircleAvatar(
@@ -184,6 +434,7 @@ class _ForumScreenState extends State<ForumScreen> {
                   children: [
                     TextField(
                       controller: _titleController,
+                      enabled: !_isLoading && _canPost,
                       decoration: InputDecoration(
                         hintText: 'Post title...',
                         border: OutlineInputBorder(
@@ -195,6 +446,7 @@ class _ForumScreenState extends State<ForumScreen> {
                     const SizedBox(height: 8),
                     TextField(
                       controller: _postController,
+                      enabled: !_isLoading && _canPost,
                       maxLines: 3,
                       decoration: InputDecoration(
                         hintText: 'What\'s on your mind?',
@@ -207,9 +459,13 @@ class _ForumScreenState extends State<ForumScreen> {
                     const SizedBox(height: 8),
                     DropdownButton<String>(
                       value: _selectedCategory,
-                      onChanged: (value) {
-                        setState(() => _selectedCategory = value ?? 'General');
-                      },
+                      onChanged: _isLoading || !_canPost
+                          ? null
+                          : (value) {
+                              setState(
+                                () => _selectedCategory = value ?? 'General',
+                              );
+                            },
                       items: _categories
                           .map(
                             (category) => DropdownMenuItem(
@@ -219,6 +475,81 @@ class _ForumScreenState extends State<ForumScreen> {
                           )
                           .toList(),
                     ),
+                    const SizedBox(height: 12),
+                    // Image selection buttons
+                    Row(
+                      children: [
+                        ElevatedButton.icon(
+                          onPressed: _isLoading || !_canPost
+                              ? null
+                              : _pickImages,
+                          icon: const Icon(Icons.image),
+                          label: const Text('Add Images'),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: Colors.green[600],
+                            foregroundColor: Colors.white,
+                          ),
+                        ),
+                        const SizedBox(width: 8),
+                        if (_selectedImages.isNotEmpty)
+                          ElevatedButton.icon(
+                            onPressed: _isLoading ? null : _clearAllImages,
+                            icon: const Icon(Icons.clear),
+                            label: Text('Clear (${_selectedImages.length})'),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.red[600],
+                              foregroundColor: Colors.white,
+                            ),
+                          ),
+                      ],
+                    ),
+                    // Image preview grid
+                    if (_selectedImages.isNotEmpty) ...[
+                      const SizedBox(height: 12),
+                      GridView.builder(
+                        shrinkWrap: true,
+                        physics: const NeverScrollableScrollPhysics(),
+                        gridDelegate:
+                            const SliverGridDelegateWithFixedCrossAxisCount(
+                              crossAxisCount: 3,
+                              crossAxisSpacing: 8,
+                              mainAxisSpacing: 8,
+                            ),
+                        itemCount: _selectedImages.length,
+                        itemBuilder: (context, index) {
+                          return Stack(
+                            children: [
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(8),
+                                child: Image.file(
+                                  _selectedImages[index],
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
+                              Positioned(
+                                top: 4,
+                                right: 4,
+                                child: GestureDetector(
+                                  onTap: () => _removeImage(index),
+                                  child: Container(
+                                    decoration: BoxDecoration(
+                                      color: Colors.red.withOpacity(0.8),
+                                      shape: BoxShape.circle,
+                                    ),
+                                    padding: const EdgeInsets.all(4),
+                                    child: const Icon(
+                                      Icons.close,
+                                      color: Colors.white,
+                                      size: 16,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          );
+                        },
+                      ),
+                    ],
                   ],
                 ),
               ),
@@ -228,7 +559,7 @@ class _ForumScreenState extends State<ForumScreen> {
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
-              onPressed: _isLoading ? null : _createPost,
+              onPressed: _isLoading || !_canPost ? null : _createPost,
               style: ElevatedButton.styleFrom(
                 backgroundColor: const Color(0xFF2196F3),
                 shape: RoundedRectangleBorder(
@@ -361,6 +692,44 @@ class _ForumScreenState extends State<ForumScreen> {
               overflow: TextOverflow.ellipsis,
               style: TextStyle(fontSize: 13, color: Colors.grey[700]),
             ),
+            // Display images if available
+            if (post.images.isNotEmpty) ...[
+              const SizedBox(height: 12),
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                child: Row(
+                  children: post.images.map((imageUrl) {
+                    return Container(
+                      margin: const EdgeInsets.only(right: 8),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: imageUrl.startsWith('data:image')
+                            ? Image.memory(
+                                base64Decode(imageUrl.split(',')[1]),
+                                width: 150,
+                                height: 150,
+                                fit: BoxFit.cover,
+                              )
+                            : Image.network(
+                                imageUrl,
+                                width: 150,
+                                height: 150,
+                                fit: BoxFit.cover,
+                                errorBuilder: (context, error, stackTrace) {
+                                  return Container(
+                                    width: 150,
+                                    height: 150,
+                                    color: Colors.grey[300],
+                                    child: const Icon(Icons.image),
+                                  );
+                                },
+                              ),
+                      ),
+                    );
+                  }).toList(),
+                ),
+              ),
+            ],
             const SizedBox(height: 12),
 
             // Engagement buttons
@@ -370,9 +739,12 @@ class _ForumScreenState extends State<ForumScreen> {
                   icon: Icons.favorite_border,
                   label: '${post.likeCount} likes',
                   onTap: () {
-                    ScaffoldMessenger.of(
-                      context,
-                    ).showSnackBar(const SnackBar(content: Text('Liked!')));
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                        content: Text('Liked!'),
+                        duration: Duration(seconds: 1),
+                      ),
+                    );
                   },
                 ),
                 const Spacer(),
@@ -383,6 +755,7 @@ class _ForumScreenState extends State<ForumScreen> {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
                         content: Text('Replies feature coming soon!'),
+                        duration: Duration(seconds: 1),
                       ),
                     );
                   },
@@ -395,6 +768,7 @@ class _ForumScreenState extends State<ForumScreen> {
                     ScaffoldMessenger.of(context).showSnackBar(
                       const SnackBar(
                         content: Text('Share feature coming soon!'),
+                        duration: Duration(seconds: 1),
                       ),
                     );
                   },

@@ -69,28 +69,28 @@ class _VisitorHomeScreenState extends State<VisitorHomeScreen> {
       'price': '৳500',
       'brand': 'Toyota',
       'rating': '4.5',
-      'image': 'https://via.placeholder.com/150x150?text=Oil+Filter',
+      'image': 'https://picsum.photos/seed/oil-filter/200/200',
     },
     {
       'name': 'Brake Pads Set',
       'price': '৳2,500',
       'brand': 'Honda',
       'rating': '4.7',
-      'image': 'https://via.placeholder.com/150x150?text=Brake+Pads',
+      'image': 'https://picsum.photos/seed/brake-pads/200/200',
     },
     {
       'name': 'Air Filter',
       'price': '৳350',
       'brand': 'Suzuki',
       'rating': '4.3',
-      'image': 'https://via.placeholder.com/150x150?text=Air+Filter',
+      'image': 'https://picsum.photos/seed/air-filter/200/200',
     },
     {
       'name': 'Spark Plugs',
       'price': '৳800',
       'brand': 'Universal',
       'rating': '4.6',
-      'image': 'https://via.placeholder.com/150x150?text=Spark+Plugs',
+      'image': 'https://picsum.photos/seed/spark-plugs/200/200',
     },
   ];
 
@@ -100,21 +100,21 @@ class _VisitorHomeScreenState extends State<VisitorHomeScreen> {
       'price': '৳25,00,000',
       'mileage': '45,000 km',
       'rating': '4.8',
-      'image': 'https://via.placeholder.com/200x150?text=Toyota+Corolla',
+      'image': 'https://picsum.photos/seed/toyota-corolla/300/200',
     },
     {
       'name': 'Honda Civic 2019',
       'price': '৳28,50,000',
       'mileage': '38,000 km',
       'rating': '4.7',
-      'image': 'https://via.placeholder.com/200x150?text=Honda+Civic',
+      'image': 'https://picsum.photos/seed/honda-civic/300/200',
     },
     {
       'name': 'Suzuki Swift 2021',
       'price': '৳18,00,000',
       'mileage': '25,000 km',
       'rating': '4.6',
-      'image': 'https://via.placeholder.com/200x150?text=Suzuki+Swift',
+      'image': 'https://picsum.photos/seed/suzuki-swift/300/200',
     },
   ];
 

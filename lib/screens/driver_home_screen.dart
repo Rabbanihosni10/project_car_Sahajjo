@@ -561,12 +561,11 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
                             ],
                           ),
                           const SizedBox(height: 8),
-                          if (job.description != null &&
-                              job.description!.isNotEmpty)
+                          if (job.description.isNotEmpty)
                             Padding(
                               padding: const EdgeInsets.only(bottom: 8.0),
                               child: Text(
-                                job.description!,
+                                job.description,
                                 maxLines: 2,
                                 overflow: TextOverflow.ellipsis,
                                 style: TextStyle(
@@ -583,7 +582,7 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
                                     Text(
-                                      'Location: ${job.location ?? 'N/A'}',
+                                      'Location: ${job.location}',
                                       style: TextStyle(
                                         fontSize: 12,
                                         color: Colors.grey[600],
@@ -591,7 +590,7 @@ class _DriverHomeScreenState extends State<DriverHomeScreen> {
                                     ),
                                     const SizedBox(height: 4),
                                     Text(
-                                      'Salary: TK ${job.salary ?? 'Not specified'}',
+                                      'Salary: TK ${job.salary}',
                                       style: const TextStyle(
                                         fontWeight: FontWeight.bold,
                                         fontSize: 13,

@@ -81,26 +81,47 @@ class _SignInScreenState extends State<SignInScreen> {
     }
 
     final role = userData['role'] as String?;
-
-    switch (role) {
-      case 'driver':
-        Navigator.of(
-          context,
-        ).pushReplacementNamed('/driver/home', arguments: userData);
-        break;
-      case 'owner':
-      case 'carOwner':
-        Navigator.of(
-          context,
-        ).pushReplacementNamed('/owner/home', arguments: userData);
-        break;
-      case 'visitor':
-      default:
-        Navigator.of(
-          context,
-        ).pushReplacementNamed('/visitor/home', arguments: userData);
-        break;
+    if (role == 'driver' || role == 'owner' || role == 'carOwner') {
+      // Offer a choice to go to forum to post
+      await showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          title: const Text('Where to next?'),
+          content: const Text(
+            'You can post in the forum. Would you like to open it now?',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                final forumArgs = Map<String, dynamic>.from(userData);
+                forumArgs['showPostHint'] = true;
+                Navigator.of(
+                  context,
+                ).pushReplacementNamed('/forum', arguments: forumArgs);
+              },
+              child: const Text('Open Forum'),
+            ),
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                Navigator.of(context).pushReplacementNamed(
+                  role == 'driver' ? '/driver/home' : '/owner/home',
+                  arguments: userData,
+                );
+              },
+              child: const Text('Go to Home'),
+            ),
+          ],
+        ),
+      );
+      return;
     }
+
+    // Default for visitors and others
+    Navigator.of(
+      context,
+    ).pushReplacementNamed('/visitor/home', arguments: userData);
   }
 
   @override
@@ -302,6 +323,31 @@ class _SignInScreenState extends State<SignInScreen> {
                       'Create one',
                       style: TextStyle(
                         color: Color(0xFF2196F3),
+                        fontWeight: FontWeight.bold,
+                        fontSize: 16,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 32),
+
+              // Admin Login Link
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Text(
+                    'Are you an admin? ',
+                    style: TextStyle(color: Colors.grey),
+                  ),
+                  GestureDetector(
+                    onTap: () {
+                      Navigator.of(context).pushNamed('/admin/login');
+                    },
+                    child: const Text(
+                      'Login here',
+                      style: TextStyle(
+                        color: Color(0xFFD32F2F),
                         fontWeight: FontWeight.bold,
                         fontSize: 16,
                       ),

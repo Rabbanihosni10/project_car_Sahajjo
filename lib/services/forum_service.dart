@@ -3,29 +3,164 @@ import 'dart:convert';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:cars_ahajjo/utils/constrains.dart';
 import '../models/forum_post.dart';
+import 'local_forum_database.dart';
+import 'dart:math';
+import 'auth_services.dart';
+import 'dart:io';
 
 class ForumService {
   static String get baseUrl => '${AppConstants.baseUrl}/forum';
+  static final _localDb = LocalForumDatabase();
 
   static Future<String?> _getToken() async {
     final prefs = await SharedPreferences.getInstance();
     return prefs.getString('token');
   }
 
-  // Create post
+  static Future<String?> _getCurrentUserId() async {
+    // Try to read from AuthService userData
+    final userData = await AuthService.getUserData();
+    return userData?['_id'] as String?;
+  }
+
+  static Future<String?> _getCurrentUserName() async {
+    final userData = await AuthService.getUserData();
+    return (userData?['name'] as String?) ??
+        (userData?['fullName'] as String?) ??
+        (userData?['username'] as String?);
+  }
+
+  // Create post - only allowed for driver and owner roles
   static Future<ForumPost?> createPost({
     required String title,
     required String content,
     required String category,
     List<String>? tags,
+    List<File>? images,
   }) async {
     try {
+      // Require authentication
       final token = await _getToken();
-      if (token == null) {
-        print('No token found');
+      if (token == null || token.isEmpty) {
+        print('Posting denied: not authenticated');
         return null;
       }
 
+      // Validate role (only driver/owner allowed)
+      final role = await AuthService.getUserRole();
+      final allowedRoles = {'driver', 'owner', 'carOwner'};
+      if (role == null || !allowedRoles.contains(role)) {
+        print('Posting denied: role $role not permitted');
+        return null;
+      }
+
+      // Get user info
+      final authorId =
+          await _getCurrentUserId() ?? 'unknown_${Random().nextInt(100000)}';
+      final authorName = await _getCurrentUserName() ?? 'Unknown';
+
+      // Create unique ID
+      final postId =
+          'post_${DateTime.now().millisecondsSinceEpoch}_${Random().nextInt(10000)}';
+      final now = DateTime.now();
+
+      // Upload images if provided
+      List<String> uploadedImageUrls = [];
+      if (images != null && images.isNotEmpty) {
+        print('Uploading ${images.length} images...');
+        uploadedImageUrls = await _uploadImages(images);
+        print('Images uploaded: $uploadedImageUrls');
+      }
+
+      // Create ForumPost object with uploaded image URLs
+      final newPost = ForumPost(
+        id: postId,
+        authorId: authorId,
+        authorName: authorName,
+        authorAvatar: null,
+        title: title,
+        content: content,
+        category: category,
+        tags: tags ?? [],
+        images: uploadedImageUrls,
+        likeCount: 0,
+        views: 0,
+        isPinned: false,
+        isSolved: false,
+        isLikedByMe: false,
+        status: 'published',
+        createdAt: now,
+        updatedAt: now,
+      );
+
+      // Save to local database immediately
+      await _localDb.insertPost(newPost);
+      print('Post saved locally with ID: ${newPost.id}');
+
+      // Try to sync with server in background
+      _syncPostWithServer(newPost, token);
+
+      return newPost;
+    } catch (e) {
+      print('Error creating post: $e');
+      return null;
+    }
+  }
+
+  // Upload images and return their URLs
+  static Future<List<String>> _uploadImages(List<File> images) async {
+    final token = await _getToken();
+    if (token == null) return [];
+
+    List<String> uploadedUrls = [];
+
+    for (final imageFile in images) {
+      try {
+        // Create multipart request
+        final request = http.MultipartRequest(
+          'POST',
+          Uri.parse('$baseUrl/upload-image'),
+        );
+
+        request.headers['Authorization'] = 'Bearer $token';
+        request.files.add(
+          await http.MultipartFile.fromPath('image', imageFile.path),
+        );
+
+        final streamedResponse = await request.send();
+        final response = await http.Response.fromStream(streamedResponse);
+
+        if (response.statusCode == 200 || response.statusCode == 201) {
+          final data = jsonDecode(response.body);
+          final imageUrl = data['data']?['url'] ?? data['url'];
+          if (imageUrl != null) {
+            uploadedUrls.add(imageUrl);
+            print('Image uploaded: $imageUrl');
+          }
+        } else {
+          print('Error uploading image: ${response.body}');
+          // Fallback: use base64 encoding for local storage
+          final base64Image = base64Encode(imageFile.readAsBytesSync());
+          uploadedUrls.add('data:image/jpeg;base64,$base64Image');
+        }
+      } catch (e) {
+        print('Error uploading image: $e');
+        // Fallback to base64
+        try {
+          final base64Image = base64Encode(imageFile.readAsBytesSync());
+          uploadedUrls.add('data:image/jpeg;base64,$base64Image');
+        } catch (_) {
+          // Skip this image if all fails
+        }
+      }
+    }
+
+    return uploadedUrls;
+  }
+
+  // Sync post with server in background
+  static Future<void> _syncPostWithServer(ForumPost post, String token) async {
+    try {
       final response = await http.post(
         Uri.parse('$baseUrl/posts'),
         headers: {
@@ -33,63 +168,98 @@ class ForumService {
           'Authorization': 'Bearer $token',
         },
         body: jsonEncode({
-          'title': title,
-          'content': content,
-          'category': category,
-          'tags': tags ?? [],
+          'title': post.title,
+          'content': post.content,
+          'category': post.category,
+          'tags': post.tags,
         }),
       );
 
-      print('Forum POST response status: ${response.statusCode}');
-      print('Forum POST response body: ${response.body}');
-
       if (response.statusCode == 201) {
-        final data = jsonDecode(response.body);
-        return ForumPost.fromJson(data['data']);
-      } else if (response.statusCode == 401) {
-        print('Unauthorized: Token may be invalid');
-        return null;
-      } else if (response.statusCode == 500) {
-        print('Server error: ${response.body}');
-        return null;
+        await _localDb.markPostAsSynced(post.id);
+        print('Post synced with server');
       }
-      return null;
     } catch (e) {
-      print('Error creating post: $e');
-      return null;
+      print('Error syncing post with server: $e');
     }
   }
 
-  // Get posts
+  // Get posts from both local database and API
   static Future<List<ForumPost>> getPosts({
     String? category,
     String? search,
     String sortBy = 'newest',
+    bool includeLocal = true,
   }) async {
     try {
-      var uri = Uri.parse('$baseUrl/posts');
-      final queryParams = <String, String>{};
-      if (category != null) queryParams['category'] = category;
-      if (search != null) queryParams['search'] = search;
-      queryParams['sortBy'] = sortBy;
+      List<ForumPost> allPosts = [];
 
-      uri = uri.replace(queryParameters: queryParams);
-
-      final response = await http.get(
-        uri,
-        headers: {'Content-Type': 'application/json'},
-      );
-
-      if (response.statusCode == 200) {
-        final data = jsonDecode(response.body);
-        return (data['data'] as List)
-            .map((post) => ForumPost.fromJson(post))
-            .toList();
+      // Get posts from local database
+      if (includeLocal) {
+        final localPosts = await _localDb.getAllPosts(category: category);
+        allPosts.addAll(localPosts);
       }
-      return [];
+
+      // Try to get from API
+      try {
+        var uri = Uri.parse('$baseUrl/posts');
+        final queryParams = <String, String>{};
+        if (category != null && category.isNotEmpty) {
+          queryParams['category'] = category;
+        }
+        if (search != null) queryParams['search'] = search;
+        queryParams['sortBy'] = sortBy;
+
+        uri = uri.replace(queryParameters: queryParams);
+
+        final response = await http
+            .get(uri, headers: {'Content-Type': 'application/json'})
+            .timeout(const Duration(seconds: 5));
+
+        if (response.statusCode == 200) {
+          final data = jsonDecode(response.body);
+          final apiPosts = (data['data'] as List)
+              .map((post) => ForumPost.fromJson(post))
+              .toList();
+
+          // Add API posts and update local database
+          for (var post in apiPosts) {
+            // Check if post already exists in local database
+            final existingPost = await _localDb.getPost(post.id);
+            if (existingPost == null) {
+              await _localDb.insertPost(post);
+            } else {
+              // Update existing post with server data
+              await _localDb.updatePost(post);
+            }
+          }
+
+          // Return combined list, removing duplicates and sorting by date
+          allPosts.addAll(apiPosts);
+        }
+      } catch (e) {
+        print('Error fetching from API: $e');
+        // Fallback to local database
+      }
+
+      // Remove duplicates and sort
+      final seen = <String>{};
+      final uniquePosts = <ForumPost>[];
+      for (var post in allPosts) {
+        if (!seen.contains(post.id)) {
+          seen.add(post.id);
+          uniquePosts.add(post);
+        }
+      }
+
+      // Sort by date (newest first)
+      uniquePosts.sort((a, b) => b.createdAt.compareTo(a.createdAt));
+
+      return uniquePosts;
     } catch (e) {
       print('Error fetching posts: $e');
-      return [];
+      // Return local posts as fallback
+      return await _localDb.getAllPosts(category: category);
     }
   }
 
