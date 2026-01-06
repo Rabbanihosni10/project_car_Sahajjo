@@ -1,0 +1,408 @@
+{
+  "info": {
+    "name": "Car Sahajjo - Complete API Collection",
+    "description": "All endpoints with test data ready to use",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      {
+        "key": "token",
+        "value": "",
+        "type": "string"
+      }
+    ]
+  },
+  "item": [
+    {
+      "name": "AUTH",
+      "item": [
+        {
+          "name": "Register Rider",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"name\": \"John Doe\", \"email\": \"john@example.com\", \"phone\": \"01700000000\", \"password\": \"SecurePass123!\", \"role\": \"rider\"}"
+            },
+            "url": {
+              "raw": "http://localhost:5003/api/auth/register",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5003",
+              "path": ["api", "auth", "register"]
+            }
+          }
+        },
+        {
+          "name": "Register Driver",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"name\": \"Ahmed Khan\", \"email\": \"ahmed@example.com\", \"phone\": \"01800000000\", \"password\": \"SecurePass123!\", \"role\": \"driver\"}"
+            },
+            "url": {
+              "raw": "http://localhost:5003/api/auth/register",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5003",
+              "path": ["api", "auth", "register"]
+            }
+          }
+        },
+        {
+          "name": "Login",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"email\": \"john@example.com\", \"password\": \"SecurePass123!\"}"
+            },
+            "url": {
+              "raw": "http://localhost:5003/api/auth/login",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5003",
+              "path": ["api", "auth", "login"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "RIDES",
+      "item": [
+        {
+          "name": "Create Ride",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"pickupLocation\": {\"latitude\": 23.8103, \"longitude\": 90.4125, \"address\": \"Mirpur, Dhaka\"}, \"dropoffLocation\": {\"latitude\": 23.7850, \"longitude\": 90.3346, \"address\": \"Gulshan, Dhaka\"}, \"distance\": 8.5, \"estimatedDuration\": 25}"
+            },
+            "url": {
+              "raw": "http://localhost:5003/api/rides",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5003",
+              "path": ["api", "rides"]
+            }
+          }
+        },
+        {
+          "name": "Get All Rides",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5003/api/rides",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5003",
+              "path": ["api", "rides"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "JOBS",
+      "item": [
+        {
+          "name": "Create Job Post",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"title\": \"Need Full-time Driver\", \"description\": \"Looking for experienced driver\", \"carModel\": \"Toyota Prius 2023\", \"location\": \"Dhaka\", \"salary\": 25000, \"salaryType\": \"monthly\", \"jobType\": \"full-time\", \"experience\": 2, \"licenseType\": \"B\", \"workingHours\": [\"8 AM\", \"5 PM\"], \"requirements\": [\"Valid License\", \"2+ years\"], \"perks\": [\"Fuel allowance\", \"Insurance\"]}"
+            },
+            "url": {
+              "raw": "http://localhost:5003/api/jobs",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5003",
+              "path": ["api", "jobs"]
+            }
+          }
+        },
+        {
+          "name": "Get All Jobs",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5003/api/jobs",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5003",
+              "path": ["api", "jobs"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "MARKETPLACE",
+      "item": [
+        {
+          "name": "Create Product",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"name\": \"Car Air Filter\", \"description\": \"Original OEM car air filter\", \"category\": \"car_parts\", \"price\": 1500, \"originalPrice\": 2000, \"discount\": 25, \"stock\": 50, \"sku\": \"FILTER-TOYOTA-001\", \"shipping\": {\"available\": true, \"cost\": 150, \"estimatedDays\": 3}}"
+            },
+            "url": {
+              "raw": "http://localhost:5003/api/marketplace/products",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5003",
+              "path": ["api", "marketplace", "products"]
+            }
+          }
+        },
+        {
+          "name": "Get All Products",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5003/api/marketplace/products",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5003",
+              "path": ["api", "marketplace", "products"]
+            }
+          }
+        },
+        {
+          "name": "Add to Cart",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"productId\": \"REPLACE_WITH_PRODUCT_ID\", \"quantity\": 2}"
+            },
+            "url": {
+              "raw": "http://localhost:5003/api/marketplace/cart/add",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5003",
+              "path": ["api", "marketplace", "cart", "add"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "FORUM",
+      "item": [
+        {
+          "name": "Create Post",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"title\": \"Best routes in Dhaka during rush hour\", \"content\": \"I found great alternative routes that avoid traffic. Banani Lake route is smooth in evening.\", \"category\": \"tips\", \"tags\": [\"driving\", \"traffic\", \"dhaka\"]}"
+            },
+            "url": {
+              "raw": "http://localhost:5003/api/forum/posts",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5003",
+              "path": ["api", "forum", "posts"]
+            }
+          }
+        },
+        {
+          "name": "Get All Posts",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5003/api/forum/posts",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5003",
+              "path": ["api", "forum", "posts"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "RENTALS",
+      "item": [
+        {
+          "name": "Create Rental",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              },
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"carName\": \"Toyota Prius 2023\", \"carModel\": \"Prius\", \"registrationNumber\": \"DH-12345\", \"category\": \"sedan\", \"location\": \"Gulshan\", \"pricePerDay\": 3500, \"pricePerMonth\": 85000, \"capacity\": 5, \"features\": [\"AC\", \"Power Steering\"], \"deposit\": {\"required\": true, \"amount\": 50000}, \"insurance\": {\"included\": true, \"type\": \"comprehensive\"}}"
+            },
+            "url": {
+              "raw": "http://localhost:5003/api/rentals",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5003",
+              "path": ["api", "rentals"]
+            }
+          }
+        },
+        {
+          "name": "Get Available Rentals",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "http://localhost:5003/api/rentals",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5003",
+              "path": ["api", "rentals"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "FARES",
+      "item": [
+        {
+          "name": "Estimate Fare",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\"distance\": 8.5, \"durationMinutes\": 25, \"demandLevel\": \"normal\"}"
+            },
+            "url": {
+              "raw": "http://localhost:5003/api/fares/estimate",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5003",
+              "path": ["api", "fares", "estimate"]
+            }
+          }
+        },
+        {
+          "name": "Get Fare History",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{token}}"
+              }
+            ],
+            "url": {
+              "raw": "http://localhost:5003/api/fares/history?role=rider",
+              "protocol": "http",
+              "host": ["localhost"],
+              "port": "5003",
+              "path": ["api", "fares", "history"],
+              "query": [
+                {
+                  "key": "role",
+                  "value": "rider"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    }
+  ]
+}

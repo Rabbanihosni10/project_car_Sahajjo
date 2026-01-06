@@ -1,0 +1,432 @@
+{
+  "info": {
+    "name": "CarSahajjo - People & Connections API",
+    "description": "API collection for People and Connections feature",
+    "version": "1.0.0",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "item": [
+    {
+      "name": "People Discovery",
+      "item": [
+        {
+          "name": "Discover People",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/people/discover?page=1&limit=10&searchQuery=",
+              "host": ["{{base_url}}"],
+              "path": ["api", "people", "discover"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                },
+                {
+                  "key": "searchQuery",
+                  "value": "",
+                  "disabled": true
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get User Profile",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/people/profile/USER_ID",
+              "host": ["{{base_url}}"],
+              "path": ["api", "people", "profile", "USER_ID"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Connection Management",
+      "item": [
+        {
+          "name": "Send Connection Request",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"recipientId\": \"USER_ID\",\n  \"connectionType\": \"friend\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/people/connect",
+              "host": ["{{base_url}}"],
+              "path": ["api", "people", "connect"]
+            }
+          }
+        },
+        {
+          "name": "Accept Connection Request",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"connectionId\": \"CONNECTION_ID\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/people/accept-connection",
+              "host": ["{{base_url}}"],
+              "path": ["api", "people", "accept-connection"]
+            }
+          }
+        },
+        {
+          "name": "Reject Connection Request",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"connectionId\": \"CONNECTION_ID\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/people/reject-connection",
+              "host": ["{{base_url}}"],
+              "path": ["api", "people", "reject-connection"]
+            }
+          }
+        },
+        {
+          "name": "Get Pending Requests",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/people/pending-requests?page=1&limit=10",
+              "host": ["{{base_url}}"],
+              "path": ["api", "people", "pending-requests"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Friends & Followers",
+      "item": [
+        {
+          "name": "Get Friends List",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/people/friends/USER_ID?page=1&limit=10",
+              "host": ["{{base_url}}"],
+              "path": ["api", "people", "friends", "USER_ID"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Followers",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/people/followers/USER_ID?page=1&limit=10",
+              "host": ["{{base_url}}"],
+              "path": ["api", "people", "followers", "USER_ID"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Get Following",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/people/following/USER_ID?page=1&limit=10",
+              "host": ["{{base_url}}"],
+              "path": ["api", "people", "following", "USER_ID"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "10"
+                }
+              ]
+            }
+          }
+        },
+        {
+          "name": "Toggle Follow",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"USER_ID\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/people/follow",
+              "host": ["{{base_url}}"],
+              "path": ["api", "people", "follow"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Blocking & Privacy",
+      "item": [
+        {
+          "name": "Block User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"USER_ID\",\n  \"reason\": \"Spamming\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/people/block",
+              "host": ["{{base_url}}"],
+              "path": ["api", "people", "block"]
+            }
+          }
+        },
+        {
+          "name": "Unblock User",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"userId\": \"USER_ID\"\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/people/unblock",
+              "host": ["{{base_url}}"],
+              "path": ["api", "people", "unblock"]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Chat & Messaging",
+      "item": [
+        {
+          "name": "Get Chat List",
+          "request": {
+            "method": "GET",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "type": "text"
+              }
+            ],
+            "url": {
+              "raw": "{{base_url}}/api/people/chat-list?page=1&limit=20",
+              "host": ["{{base_url}}"],
+              "path": ["api", "people", "chat-list"],
+              "query": [
+                {
+                  "key": "page",
+                  "value": "1"
+                },
+                {
+                  "key": "limit",
+                  "value": "20"
+                }
+              ]
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Profile Management",
+      "item": [
+        {
+          "name": "Update Profile",
+          "request": {
+            "method": "PUT",
+            "header": [
+              {
+                "key": "Authorization",
+                "value": "Bearer {{auth_token}}",
+                "type": "text"
+              },
+              {
+                "key": "Content-Type",
+                "value": "application/json",
+                "type": "text"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"bio\": \"I love cars and driving\",\n  \"avatar\": \"https://example.com/avatar.jpg\",\n  \"coverImage\": \"https://example.com/cover.jpg\",\n  \"location\": \"New York\",\n  \"profession\": \"Driver\",\n  \"website\": \"https://example.com\",\n  \"interests\": [\"Cars\", \"Driving\", \"Networking\"],\n  \"isProfilePublic\": true,\n  \"allowDirectMessages\": true,\n  \"allowConnectionRequests\": true,\n  \"socialLinks\": {\n    \"facebook\": \"john.doe\",\n    \"instagram\": \"@johndoe\",\n    \"twitter\": \"@johndoe\",\n    \"linkedIn\": \"john-doe\"\n  }\n}"
+            },
+            "url": {
+              "raw": "{{base_url}}/api/people/profile",
+              "host": ["{{base_url}}"],
+              "path": ["api", "people", "profile"]
+            }
+          }
+        }
+      ]
+    }
+  ],
+  "variable": [
+    {
+      "key": "base_url",
+      "value": "http://localhost:5000",
+      "type": "string"
+    },
+    {
+      "key": "auth_token",
+      "value": "",
+      "type": "string"
+    }
+  ]
+}
