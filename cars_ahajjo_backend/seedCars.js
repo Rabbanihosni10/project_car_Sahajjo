@@ -2,18 +2,13 @@ const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 
 dotenv.config();
-
-// Connect to MongoDB
 mongoose.connect(process.env.MONGO_URI || 'mongodb://127.0.0.1:27017/cars_ahajjo')
   .then(() => console.log('✅ MongoDB Connected'))
   .catch(err => console.error('❌ MongoDB Error:', err));
 
 const CarRental = require('./models/carRental');
 const User = require('./models/user');
-
-// Sample car data with images
 const carsData = [
-  // Economy Cars
   {
     carName: 'Toyota Axio',
     carModel: '2020 G Grade',
@@ -327,6 +322,4 @@ async function seedCars() {
     process.exit(1);
   }
 }
-
-// Run seeder
 seedCars();

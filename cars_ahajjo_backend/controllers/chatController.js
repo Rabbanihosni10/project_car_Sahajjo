@@ -1,17 +1,12 @@
-// In-memory chat storage (can be replaced with MongoDB)
-const chatHistory = new Map();
 
-/**
- * Ask AI Assistant a question
- * POST /api/chat/ask
- */
+const chatHistory = new Map();
 exports.askAI = async (req, res) => {
   try {
     const { question } = req.body;
     const image = req.file; // From multer middleware
     const userId = req.user.id;
 
-    // If image is present, question can be optional (or default to "What is this?")
+
     const finalQuestion = question || (image ? "What is this?" : "");
 
     if (!finalQuestion || finalQuestion.trim() === "") {
@@ -32,13 +27,12 @@ exports.askAI = async (req, res) => {
       timestamp: new Date()
     });
 
-    // Get AI response using Google Gemini
     const aiResponse = await getGeminiResponse(finalQuestion, userHistory, image);
 
-    // Store AI response
+
     userHistory.push({ role: "assistant", content: aiResponse, timestamp: new Date() });
 
-    // Keep only last 20 messages
+
     if (userHistory.length > 20) {
       chatHistory.set(userId, userHistory.slice(-20));
     }
@@ -60,10 +54,7 @@ exports.askAI = async (req, res) => {
   }
 };
 
-/**
- * Get chat history for current user
- * GET /api/chat/history
- */
+
 exports.getChatHistory = async (req, res) => {
   try {
     const userId = req.user.id;
@@ -83,10 +74,6 @@ exports.getChatHistory = async (req, res) => {
   }
 };
 
-/**
- * Clear chat history for current user
- * DELETE /api/chat/history
- */
 exports.clearChatHistory = async (req, res) => {
   try {
     const userId = req.user.id;
@@ -105,28 +92,14 @@ exports.clearChatHistory = async (req, res) => {
     });
   }
 };
-
-/**
- * Get AI response from Google Gemini (Free API)
- */
-/**
- * Get AI response from Google Gemini (Free API)
- */
 async function getGeminiResponse(question, history = [], image = null) {
   try {
-    // Use Google Gemini Free API
     const { GoogleGenerativeAI } = require("@google/generative-ai");
-
-    // Get API key from environment variable
     const apiKey = process.env.GEMINI_API_KEY || "AIzaSyBT8hYQVxDxVvxR2F3kQJ5nZ8nH4VYo3wA"; // Fallback key
 
     const genAI = new GoogleGenerativeAI(apiKey);
-
-    // Choose model based on input type (Vision model for images)
     const modelName = image ? "gemini-1.5-flash" : "gemini-pro";
     const model = genAI.getGenerativeModel({ model: modelName });
-
-    // Create context-aware prompt
     const systemPrompt = `You are a helpful AI assistant for a ride-sharing and car rental platform called "Car Sahajjo". 
 You help users with:
 - Car maintenance tips (oil changes, tire care, battery, brakes)
@@ -140,8 +113,6 @@ ${image ? '- VISUAL DIAGNOSIS: Analyze the attached image (car part, dashboard l
 Always be friendly, concise, and helpful. Give practical advice.`;
 
     let userContent = [];
-
-    // Add image to content if present
     if (image) {
       userContent.push({
         inlineData: {
@@ -151,7 +122,6 @@ Always be friendly, concise, and helpful. Give practical advice.`;
       });
       userContent.push({ text: `Analyze this image and answer: ${question}` });
     } else {
-      // Build conversation history for context (text-only)
       const conversationContext = history
         .slice(-6) // Last 3 exchanges
         .map((msg) => `${msg.role === "user" ? "User" : "Assistant"}: ${msg.content}`)
@@ -159,8 +129,6 @@ Always be friendly, concise, and helpful. Give practical advice.`;
 
       userContent.push({ text: `${systemPrompt}\n\n${conversationContext}\nUser: ${question}\nAssistant:` });
     }
-
-    // Generate response
     const result = await model.generateContent(userContent);
     const response = await result.response;
     const text = response.text();
@@ -168,14 +136,9 @@ Always be friendly, concise, and helpful. Give practical advice.`;
     return text.trim();
   } catch (error) {
     console.error("Gemini API Error:", error);
-    // Fallback to local responses if API fails
     return getLocalAIResponse(question);
   }
 }
-
-/**
- * Local fallback AI responses (when API fails)
- */
 function getLocalAIResponse(question) {
   const lowerQuestion = question.toLowerCase();
 
